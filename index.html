@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>AGS Tarih - 50 Soru</title>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0b1329; color: #f8fafc; padding: 20px; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: #1e293b; border-radius: 16px; padding: 28px; width: 100%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    h2, h3 { margin-top: 0; color: #38bdf8; text-align: center; }
+    input { width: 100%; padding: 14px; background: #0f172a; border: 2px solid #334155; color: #fff; border-radius: 10px; font-size: 16px; margin-bottom: 16px; outline: none; }
+    input:focus { border-color: #38bdf8; }
+    .btn { background: #2563eb; color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
+    .btn:hover { background: #1d4ed8; }
+    .timer-container { width: 100%; background: #334155; border-radius: 8px; height: 12px; margin: 15px 0; overflow: hidden; }
+    .timer-bar { height: 100%; width: 100%; background: #38bdf8; transition: width 0.9s linear; }
+    .option-btn { width: 100%; text-align: left; background: #334155; color: #f8fafc; border: 2px solid #475569; padding: 14px; border-radius: 10px; margin: 10px 0; font-size: 15px; cursor: pointer; transition: 0.2s; }
+    .option-btn:hover:not(:disabled) { background: #475569; border-color: #94a3b8; }
+    .option-btn.selected { border-color: #38bdf8; background: #1e3a8a; }
+    .badge { background: #0f172a; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #94a3b8; border: 1px solid #334155; }
+    .player-chip { background: #0f172a; border: 1px solid #334155; padding: 8px 14px; border-radius: 20px; margin: 4px; display: inline-block; font-size: 14px; }
+    .leaderboard-row { display: flex; justify-content: space-between; padding: 12px; background: #0f172a; border-radius: 8px; margin-bottom: 8px; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <!-- GİRİŞ EKRANI -->
+  <div id="login-card" class="card">
+    <h2>AGS Tarih Yarışması</h2>
+    <p style="text-align: center; color: #94a3b8; font-size: 14px;">50 Soru - 20 Saniye - Hızlı Bilen Kazanır!</p>
+    <input type="text" id="my-name" placeholder="Yarışmacı Adınızı Yazın..." maxlength="15">
+    <button class="btn" onclick="enterGame()">Lobiye Katıl</button>
+  </div>
+
+  <!-- BEKLEME LOBİSİ -->
+  <div id="lobby-card" class="card" style="display: none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+      <h3 style="margin:0;">Yarışma Odası</h3>
+      <span class="badge" id="player-count">0 Oyuncu</span>
+    </div>
+    <p style="color: #94a3b8; font-size: 14px;">Katılan oyuncular:</p>
+    <div id="lobby-players" style="min-height: 80px; margin-bottom: 20px;"></div>
+    
+    <div id="host-actions" style="display: none;">
+      <button class="btn" style="background:#10b981;" onclick="startQuiz()">Yarışmayı Başlat</button>
+    </div>
+    <p id="wait-msg" style="text-align:center; color:#94a3b8; font-size: 14px;">Oda kurucusunun oyunu başlatması bekleniyor...</p>
+  </div>
+
+  <!-- SORU EKRANI -->
+  <div id="quiz-card" class="card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span class="badge" id="q-counter">Soru 1/50</span>
+      <span class="badge" id="time-text" style="color: #f59e0b;">20s</span>
+    </div>
+
+    <div class="timer-container">
+      <div id="timer-bar" class="timer-bar"></div>
+    </div>
+
+    <h3 id="question-text" style="text-align: left; font-size: 17px; min-height: 48px; color: #f8fafc; line-height: 1.5;"></h3>
+    <div id="options-container"></div>
+    
+    <div id="status-footer" style="text-align: center; margin-top: 15px; font-size: 14px; color: #94a3b8; min-height: 22px;"></div>
+  </div>
+
+  <!-- 2 SANİYELİK SKOR EKRANI -->
+  <div id="round-card" class="card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 id="round-result-title" style="margin:0;">Tur Bitti</h3>
+      <span class="badge" style="color: #38bdf8;">Sonraki soruya geçiliyor...</span>
+    </div>
+    <p id="round-correct-ans" style="text-align:center; color:#4ade80; font-weight:600; font-size: 17px; margin: 15px 0;"></p>
+    <div id="leaderboard" style="margin: 15px 0;"></div>
+  </div>
+
+<script>
+const ROOM_NAME = "ags-genel-tarih-50-final";
+
+const questions = [
+  // İSLAMİYET ÖNCESİ (12)
+  { q: "Türk adının anlamını Kaşgarlı Mahmut Divanü Lugati't-Türk adlı eserinde nasıl tanımlamıştır?", options: ["Türeyen / Çoğalan", "Olgunluk Çağı", "Güçlü / Kuvvetli", "Miğfer"], answer: 1 },
+  { q: "Orhun Abideleri aşağıdaki Türk devletlerinden hangisi döneminde dikilmiştir?", options: ["I. Göktürk Devleti", "Uygur Devleti", "II. Göktürk (Kutluk) Devleti", "Avar Kağanlığı"], answer: 2 },
+  { q: "Maniheizm dinini kabul ederek yerleşik hayata geçen ilk Türk devleti hangisidir?", options: ["Uygurlar", "Hazarlar", "Kırgızlar", "Göktürkler"], answer: 0 },
+  { q: "Avrupa Hun Devleti'nde Doğu Roma'yı Margus Antlaşması'na zorlayan hükümdar kimdir?", options: ["Balamir", "Uldız", "Rua", "Attila"], answer: 3 },
+  { q: "İslamiyet öncesi Türk devletlerinde hükümdarın erkek çocuklarına verilen unvan hangisidir?", options: ["Tigin", "Şad", "Ataman", "İnanç"], answer: 0 },
+  { q: "Musevilik dinini benimseyen tek Türk devleti hangisidir?", options: ["Peçenekler", "Hazarlar", "Karluklar", "Bulgarlar"], answer: 1 },
+  { q: "Dünyanın en uzun destanı kabul edilen ve Kırgızlara ait olan milli destan hangisidir?", options: ["Oğuz Kağan", "Ergenekon", "Manas", "Türeyiş"], answer: 2 },
+  { q: "Asya Hun Devleti'nde orduyu onluk teşkilata göre ilk kez düzenleyen hükümdar kimdir?", options: ["Teoman", "Mete Han", "Ki-ok", "Çi-çi"], answer: 1 },
+  { q: "İslamiyet öncesi Türk devletlerinde devlet işlerinin görüşülüp karara bağlandığı meclise ne ad verilir?", options: ["Kurultay (Toy)", "Ayukı", "Yargu", "Tudun"], answer: 0 },
+  { q: "Malazgirt Savaşı'nda Bizans saflarından Büyük Selçuklu tarafına geçen Türk topluluğu hangisidir?", options: ["Avarlar", "Hazarlar", "Peçenekler", "Kıpçaklar"], answer: 2 },
+  { q: "Eski Türklerde mezar taşı olarak dikilen ve öldürülen düşmanı simgeleyen taşlara ne ad verilir?", options: ["Kurgan", "Balbal", "Yuğ", "Uçmağ"], answer: 1 },
+  { q: "Türk tarihinde matbaayı ve hareketli harf sistemini ilk kez kullanan devlet hangisidir?", options: ["Uygurlar", "Hunlar", "Göktürkler", "Türgişler"], answer: 0 },
+
+  // İLK TÜRK-İSLAM DEVLETLERİ (7)
+  { q: "Orta Asya'da kurulan ilk Müslüman Türk devleti hangisidir?", options: ["Tolunoğulları", "Gazneliler", "Karahanlılar", "İhşidiler"], answer: 2 },
+  { q: "Sultan unvanını kullanan ilk Türk hükümdarı kimdir?", options: ["Gazneli Mahmut", "Tuğrul Bey", "Alparslan", "Satuk Buğra Han"], answer: 0 },
+  { q: "1071 yılında Anadolu'nun kapılarını Türklere açan zafer hangisidir?", options: ["Pasinler Savaşı", "Malazgirt Meydan Muharebesi", "Miryokefalon Savaşı", "Dandanakan Savaşı"], answer: 1 },
+  { q: "Divriği Ulu Camii ve Darüşşifası hangi ilk Türk beyliği döneminde inşa edilmiştir?", options: ["Mengücekliler", "Danişmentliler", "Saltuklular", "Artuklular"], answer: 0 },
+  { q: "Anadolu Selçuklularının tüccarlara düşük gümrük ve devlet sigortası uygulaması hangi alanı geliştirmeye yöneliktir?", options: ["Orduyu", "Tarımsal üretimi", "Uluslararası ticareti", "İlmiye sınıfını"], answer: 2 },
+  { q: "Anadolu'nun kesin olarak Türk yurdu olduğunu tescilleyen II. Kılıçarslan dönemi zaferi hangisidir?", options: ["Yassıçemen Savaşı", "Miryokefalon Savaşı", "Kösedağ Savaşı", "Malazgirt Savaşı"], answer: 1 },
+  { q: "1260 Ayn Calut Savaşı ile Moğolların ilerleyişini durduran Türk devleti hangisidir?", options: ["Memlükler", "Eyyubiler", "Tolunoğulları", "İhşidiler"], answer: 0 },
+
+  // OSMANLI SİYASİ (10)
+  { q: "Osmanlı Devleti'nin Bizans tekfurlarına karşı kazandığı ilk zafer kabul edilen savaş hangisidir?", options: ["Koyunhisar Savaşı", "Maltepe Savaşı", "Sırpsındığı Savaşı", "Çirmen Savaşı"], answer: 0 },
+  { q: "Osmanlı Devleti'nin Rumeli'deki ilk askeri üssü ve toprağı olan kale hangisidir?", options: ["Gelibolu Kalesi", "Çimpe Kalesi", "Kilitbahir Kalesi", "Seddülbahir Kalesi"], answer: 1 },
+  { q: "Yıldırım Bayezid'e 'Sultan-ı İklim-i Rum' unvanının verildiği zafer hangisidir?", options: ["I. Kosova", "Varna", "Niğbolu Savaşı", "II. Kosova"], answer: 2 },
+  { q: "1402 Ankara Savaşı sonrasında yaşanan 11 yıllık taht kavgaları dönemine ne denir?", options: ["Fetret Devri", "Lale Devri", "Tanzimat Devri", "İkinci Meşrutiyet"], answer: 0 },
+  { q: "Akdeniz'in Türk gölü haline gelmesini sağlayan Preveze Deniz Zaferi hangi kaptan-ı derya döneminde kazanılmıştır?", options: ["Piri Reis", "Barbaros Hayrettin Paşa", "Turgut Reis", "Kılıç Ali Paşa"], answer: 1 },
+  { q: "Osmanlı Devleti'nin Doğu'da en geniş sınırlara ulaştığı antlaşma hangisidir?", options: ["Kasr-ı Şirin Antlaşması", "Amasya Antlaşması", "Nasuh Paşa Antlaşması", "Ferhat Paşa Antlaşması"], answer: 3 },
+  { q: "Avusturya kralının Osmanlı sadrazamına eşit sayılma üstünlüğünü sona erdiren antlaşma hangisidir?", options: ["Zitvatorok Antlaşması", "İstanbul Antlaşması", "Vasvar Antlaşması", "Karlofça Antlaşması"], answer: 0 },
+  { q: "Osmanlı Devleti'nin Batı'da ilk kez büyük çapta toprak kaybettiği antlaşma hangisidir?", options: ["Pasarofça Antlaşması", "Belgrad Antlaşması", "Karlofça Antlaşması", "Küçük Kaynarca Antlaşması"], answer: 2 },
+  { q: "Osmanlı Devleti'nde Lale Devri'ni başlatan 1718 tarihli antlaşma hangisidir?", options: ["Pasarofça Antlaşması", "Prut Antlaşması", "Yaş Antlaşması", "Edirne Antlaşması"], answer: 0 },
+  { q: "Yunanistan'ın Osmanlı'dan ayrılarak resmen bağımsız olduğu antlaşma hangisidir?", options: ["Bükreş Antlaşması", "Edirne Antlaşması", "Hünkar İskelesi Antlaşması", "Berlin Antlaşması"], answer: 1 },
+
+  // OSMANLI KÜLTÜR-MEDENİYET (8)
+  { q: "Sadrazam sefere çıktığında başkentte yerine vekalet eden divan üyesi kimdir?", options: ["Kazasker", "Nişancı", "Sadaret Kaymakamı", "Kaptan-ı Derya"], answer: 2 },
+  { q: "Tımarlı Sipahilerin beslemek zorunda olduğu atlı askerlere ne ad verilir?", options: ["Cebelü", "Ulufe", "Humbaracı", "Lağımcı"], answer: 0 },
+  { q: "Gelirleri padişahın annesi, eşleri ve kızlarına ayrılan dirlik arazisi hangisidir?", options: ["Mukataa", "Paşmaklık", "Yurtluk", "Malikane"], answer: 1 },
+  { q: "Mimar Sinan'ın 'ustalık eserim' dediği Edirne'deki şaheser hangisidir?", options: ["Süleymaniye Camii", "Şehzade Camii", "Selimiye Camii", "Rüstem Paşa Camii"], answer: 2 },
+  { q: "Osmanlı çarşılarında satış fiyatlarının devlet tarafından sınırlandırılmasına ne denir?", options: ["Narh Sistemi", "İltizam", "Gedik", "Müsadere"], answer: 0 },
+  { q: "İbrahim Müteferrika tarafından Osmanlı matbaasında basılan ilk kitap hangisidir?", options: ["Cihannüma", "Vankulu Lügati", "Tuhfetü'l-Kibar", "Tarih-i Naima"], answer: 1 },
+  { q: "Osmanlı'da haksız kazanç sağlayan devlet görevlilerinin mallarına el koyma usulü hangisidir?", options: ["Müsadere", "Gedik", "İstimalet", "İskan"], answer: 0 },
+  { q: "Osmanlı minyatür sanatçılarına verilen unvan aşağıdakilerden hangisidir?", options: ["Hattat", "Müzehhib", "Nakkaş", "Hakkak"], answer: 2 },
+
+  // MİLLİ MÜCADELE (8)
+  { q: "İşgallerin mitinglerle protesto edilmesini isteyen ilk belge hangisidir?", options: ["Amasya Genelgesi", "Havza Genelgesi", "Sivas Kongresi", "Misak-ı Milli"], answer: 1 },
+  { q: "Milli Mücadele'nin amaç, gerekçe ve yöntemi ilk kez nerede belirtilmiştir?", options: ["Amasya Genelgesi", "Erzurum Kongresi", "Sivas Kongresi", "Havza Genelgesi"], answer: 0 },
+  { q: "Milli cemiyetlerin tek çatı altında birleştirildiği kongre hangisidir?", options: ["Erzurum Kongresi", "Balıkesir Kongresi", "Sivas Kongresi", "Pozantı Kongresi"], answer: 2 },
+  { q: "Temsil Heyeti'nin Ali Fuat Paşa'yı Batı Cephesi Komutanlığı'na ataması hangi gücü kullandığını kanıtlar?", options: ["Yasama", "Yürütme", "Yargı", "Diplomatik"], answer: 1 },
+  { q: "İstanbul Hükümeti'nin Temsil Heyeti'ni hukuken ilk kez tanıdığı görüşme hangisidir?", options: ["Bilecik Görüşmeleri", "Amasya Görüşmeleri", "Mudanya Mütarekesi", "Londra Konferansı"], answer: 1 },
+  { q: "Sevr Antlaşması'nı kabul ettirmek amacıyla Yunanlıların başlattığı taarruzla cereyan eden ilk savaş hangisidir?", options: ["I. İnönü Savaşı", "Sakarya Savaşı", "Büyük Taarruz", "Kütahya-Eskişehir"], answer: 0 },
+  { q: "TBMM'yi resmen tanıyan ilk Müslüman devlet hangisidir?", options: ["İran", "Mısır", "Afganistan", "Pakistan"], answer: 2 },
+  { q: "'Siz orada yalnız düşmanı değil, milletin makus talihini de yendiniz' telgrafı hangi zaferden sonra çekilmiştir?", options: ["I. İnönü", "II. İnönü Muharebesi", "Sakarya", "Dumlupınar"], answer: 1 },
+
+  // İNKILAP TARİHİ (5)
+  { q: "Yeni Türkiye'nin ekonomi rotasını çizen ve Misak-ı İktisadi'nin kabul edildiği toplantı hangisidir?", options: ["İzmir İktisat Kongresi", "Londra Konferansı", "Sivas Kongresi", "Heyet-i Temsiliye"], answer: 0 },
+  { q: "1926 Medeni Kanun ile kadınlara TANINMAYAN hak hangisidir?", options: ["Miras eşitliği", "Tanıklık eşitliği", "Boşanma hakkı", "Milletvekili seçme/seçilme"], answer: 3 },
+  { q: "Saltanatın kaldırılması hangi temel Atatürk ilkesiyle doğrudan ilgilidir?", options: ["Cumhuriyetçilik", "Devletçilik", "İnkılapçılık", "Halkçılık"], answer: 0 },
+  { q: "Türkiye'nin batı sınırını güvenceye almak için 1934'te imzaladığı pakt hangisidir?", options: ["Sadabat Paktı", "Balkan Antantı", "Akdeniz Paktı", "Bağdat Paktı"], answer: 1 },
+  { q: "Türkiye'nin doğu sınırlarının güvenliği için 1937'de İran, Irak ve Afganistan ile imzaladığı pakt hangisidir?", options: ["Balkan Paktı", "Sadabat Paktı", "CENTO", "Varşova Paktı"], answer: 1 }
+];
+
+let peer = null;
+let isHost = false;
+let myName = "";
+let myPeerId = "";
+let hostConn = null;
+
+let players = [];
+let currentQ = -1;
+let timer = null;
+let timeLeft = 20;
+
+function enterGame() {
+  myName = document.getElementById('my-name').value.trim();
+  if (!myName) return alert("Lütfen adınızı girin!");
+
+  document.getElementById('login-card').style.display = 'none';
+  document.getElementById('lobby-card').style.display = 'block';
+
+  peer = new Peer(ROOM_NAME);
+
+  peer.on('open', (id) => {
+    isHost = true;
+    myPeerId = id;
+    players.push({ id: myPeerId, name: myName, score: 0, answer: null, answerTime: 0 });
+    document.getElementById('host-actions').style.display = 'block';
+    document.getElementById('wait-msg').style.display = 'none';
+    renderLobby();
+
+    peer.on('connection', (conn) => {
+      conn.on('data', (data) => handleHostData(conn, data));
+      conn.on('close', () => {
+        players = players.filter(p => p.id !== conn.peer);
+        renderLobby();
+        broadcast({ type: 'LOBBY_UPDATE', players: players.map(p => ({ name: p.name, score: p.score })) });
+      });
+    });
+  });
+
+  peer.on('error', (err) => {
+    if (err.type === 'unavailable-id') {
+      isHost = false;
+      joinAsClient();
+    }
+  });
+}
+
+function joinAsClient() {
+  peer = new Peer();
+  peer.on('open', (id) => {
+    myPeerId = id;
+    hostConn = peer.connect(ROOM_NAME);
+    hostConn.on('open', () => {
+      hostConn.send({ type: 'JOIN', name: myName });
+    });
+    hostConn.on('data', (data) => handleClientData(data));
+  });
+}
+
+function handleHostData(conn, data) {
+  if (data.type === 'JOIN') {
+    players.push({ conn, id: conn.peer, name: data.name, score: 0, answer: null, answerTime: 0 });
+    renderLobby();
+    broadcast({ type: 'LOBBY_UPDATE', players: players.map(p => ({ name: p.name, score: p.score })) });
+  } else if (data.type === 'SUBMIT_ANSWER') {
+    const p = players.find(x => x.id === conn.peer);
+    if (p && p.answer === null) {
+      p.answer = data.choice;
+      p.answerTime = data.timeRemaining;
+      checkAllAnswered();
+    }
+  }
+}
+
+function broadcast(msg) {
+  players.forEach(p => {
+    if (p.conn && p.conn.open) p.conn.send(msg);
+  });
+}
+
+function renderLobby() {
+  document.getElementById('player-count').innerText = `${players.length} Oyuncu`;
+  document.getElementById('lobby-players').innerHTML = players.map(p => `<span class="player-chip">👤 ${p.name}</span>`).join('');
+}
+
+function startQuiz() {
+  currentQ = -1;
+  broadcast({ type: 'START' });
+  nextQuestion();
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= questions.length) {
+    broadcast({ type: 'GAME_OVER' });
+    handleClientData({ type: 'GAME_OVER' });
+    return;
+  }
+
+  players.forEach(p => { p.answer = null; p.answerTime = 0; });
+
+  const q = questions[currentQ];
+  const qData = {
+    type: 'QUESTION',
+    index: currentQ,
+    total: questions.length,
+    q: q.q,
+    options: q.options
+  };
+
+  broadcast(qData);
+  handleClientData(qData);
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timer);
+  timeLeft = 20;
+  timer = setInterval(() => {
+    timeLeft--;
+    broadcast({ type: 'TICK', timeLeft });
+    handleClientData({ type: 'TICK', timeLeft });
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      evaluateRound();
+    }
+  }, 1000);
+}
+
+function checkAllAnswered() {
+  const allDone = players.every(p => p.answer !== null);
+  if (allDone) {
+    clearInterval(timer);
+    evaluateRound();
+  }
+}
+
+function evaluateRound() {
+  const correctIdx = questions[currentQ].answer;
+
+  players.forEach(p => {
+    if (p.answer === correctIdx) {
+      p.score += (500 + (p.answerTime * 25));
+    }
+  });
+
+  players.sort((a, b) => b.score - a.score);
+
+  const resultData = {
+    type: 'ROUND_OVER',
+    correctAnswer: questions[currentQ].options[correctIdx],
+    leaderboard: players.map(p => ({ name: p.name, score: p.score })),
+    isLast: currentQ + 1 >= questions.length
+  };
+
+  broadcast(resultData);
+  handleClientData(resultData);
+
+  if (!resultData.isLast) {
+    setTimeout(() => {
+      nextQuestion();
+    }, 2000);
+  } else {
+    setTimeout(() => {
+      broadcast({ type: 'GAME_OVER' });
+      handleClientData({ type: 'GAME_OVER' });
+    }, 2000);
+  }
+}
+
+let selectedChoice = null;
+
+function handleClientData(data) {
+  if (data.type === 'LOBBY_UPDATE') {
+    document.getElementById('player-count').innerText = `${data.players.length} Oyuncu`;
+    document.getElementById('lobby-players').innerHTML = data.players.map(p => `<span class="player-chip">👤 ${p.name}</span>`).join('');
+  } else if (data.type === 'START') {
+    document.getElementById('lobby-card').style.display = 'none';
+  } else if (data.type === 'QUESTION') {
+    selectedChoice = null;
+    document.getElementById('lobby-card').style.display = 'none';
+    document.getElementById('round-card').style.display = 'none';
+    document.getElementById('quiz-card').style.display = 'block';
+
+    document.getElementById('q-counter').innerText = `Soru ${data.index + 1}/${data.total}`;
+    document.getElementById('question-text').innerText = data.q;
+    document.getElementById('status-footer').innerText = "Cevabınızı seçin...";
+    document.getElementById('timer-bar').style.width = '100%';
+
+    const optBox = document.getElementById('options-container');
+    optBox.innerHTML = '';
+    data.options.forEach((opt, idx) => {
+      const b = document.createElement('button');
+      b.className = 'option-btn';
+      b.innerText = `${String.fromCharCode(65 + idx)}) ${opt}`;
+      b.onclick = () => submitAnswer(idx, b);
+      optBox.appendChild(b);
+    });
+  } else if (data.type === 'TICK') {
+    document.getElementById('time-text').innerText = `${data.timeLeft}s`;
+    document.getElementById('timer-bar').style.width = `${(data.timeLeft / 20) * 100}%`;
+  } else if (data.type === 'ROUND_OVER') {
+    document.getElementById('quiz-card').style.display = 'none';
+    document.getElementById('round-card').style.display = 'block';
+
+    document.getElementById('round-correct-ans').innerText = `Doğru Cevap: ${data.correctAnswer}`;
+    const lb = document.getElementById('leaderboard');
+    lb.innerHTML = data.leaderboard.map((p, i) => `
+      <div class="leaderboard-row">
+        <span>#${i + 1} ${p.name}</span>
+        <span style="color:#38bdf8;">${p.score} Puan</span>
+      </div>
+    `).join('');
+  } else if (data.type === 'GAME_OVER') {
+    document.getElementById('quiz-card').style.display = 'none';
+    document.getElementById('round-card').style.display = 'block';
+    document.getElementById('round-result-title').innerText = "🏆 50 Soru Tamamlandı! 🏆";
+    document.getElementById('round-correct-ans').innerText = "Yarışma sona erdi.";
+  }
+}
+
+function submitAnswer(idx, btnElem) {
+  if (selectedChoice !== null) return;
+  selectedChoice = idx;
+
+  btnElem.classList.add('selected');
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  document.getElementById('status-footer').innerText = "Cevabınız kaydedildi! Diğerleri bekleniyor...";
+
+  const payload = { type: 'SUBMIT_ANSWER', choice: idx, timeRemaining: timeLeft };
+  if (isHost) {
+    const me = players.find(p => p.id === myPeerId);
+    if (me) { me.answer = idx; me.answerTime = timeLeft; checkAllAnswered(); }
+  } else if (hostConn) {
+    hostConn.send(payload);
+  }
+}
+</script>
+</body>
+</html>
