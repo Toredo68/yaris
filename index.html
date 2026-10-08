@@ -1,8 +1,22 @@
+Çağdaş Türk ve Dünya Tarihi soruları çıkarıldı ve yerine **İslamiyet Öncesi Türk Tarihi** konusundan 5 yeni AGS tarzı soru eklendi canım. Böylece İslamiyet Öncesi Türk Tarihi toplam **12 soru** oldu ve toplam soru sayısı yine **50 soru** olarak korundu.
+
+Yeni dağılım:
+
+* **İslamiyet Öncesi Türk Tarihi:** 12 Soru
+* **İlk Türk-İslam Devletleri:** 7 Soru
+* **Osmanlı Siyasi Tarihi:** 10 Soru
+* **Osmanlı Kültür ve Medeniyeti:** 8 Soru
+* **Milli Mücadele Dönemi:** 8 Soru
+* **İnkılap Tarihi ve Atatürk Dönemi:** 5 Soru
+
+Aşağıdaki güncel kodu doğrudan kopyalayıp `index.html` dosyana yapıştırabilirsin:
+
+```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>AGS Genel Tarih Bilgi Yarışması</title>
+  <title>AGS Tarih - 50 Soru Karma</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -27,8 +41,8 @@
 
   <!-- GİRİŞ EKRANI -->
   <div id="login-card" class="card">
-    <h2>AGS Genel Tarih Yarışması</h2>
-    <p style="text-align: center; color: #94a3b8; font-size: 14px;">30 Soru Karma Tarih - 20 Saniye</p>
+    <h2>AGS Tarih Yarışması</h2>
+    <p style="text-align: center; color: #94a3b8; font-size: 14px;">50 Soru - 20 Saniye - Hızlı Bilen Kazanır!</p>
     <input type="text" id="my-name" placeholder="Yarışmacı Adınızı Yazın..." maxlength="15">
     <button class="btn" onclick="enterGame()">Lobiye Katıl</button>
   </div>
@@ -45,13 +59,13 @@
     <div id="host-actions" style="display: none;">
       <button class="btn" style="background:#10b981;" onclick="startQuiz()">Yarışmayı Başlat</button>
     </div>
-    <p id="wait-msg" style="text-align:center; color:#94a3b8; font-size: 14px;">İlk katılan yarışmacının oyunu başlatması bekleniyor...</p>
+    <p id="wait-msg" style="text-align:center; color:#94a3b8; font-size: 14px;">Oda kurucusunun oyunu başlatması bekleniyor...</p>
   </div>
 
   <!-- SORU EKRANI -->
   <div id="quiz-card" class="card" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span class="badge" id="q-counter">Soru 1/30</span>
+      <span class="badge" id="q-counter">Soru 1/50</span>
       <span class="badge" id="time-text" style="color: #f59e0b;">20s</span>
     </div>
 
@@ -76,40 +90,70 @@
   </div>
 
 <script>
-const ROOM_NAME = "ags-genel-tarih-30-v1";
+const ROOM_NAME = "ags-genel-tarih-50-v2";
 
-// AGS Müfredatına Uygun 30 Soru (Tüm Dönemler Karışık)
 const questions = [
+  // --- İSLAMİYET ÖNCESİ TÜRK TARİHİ (12 Soru) ---
   { q: "Türk adının anlamını Kaşgarlı Mahmut Divanü Lugati't-Türk adlı eserinde nasıl tanımlamıştır?", options: ["Türeyen / Çoğalan", "Olgunluk Çağı", "Güçlü / Kuvvetli", "Miğfer"], answer: 1 },
-  { q: "İslamiyet öncesi Türk devletlerinde ordunun başında sefere çıkan hükümdara ne unvan verilirdi?", options: ["Tarkan", "Tudun", "Başbuğ", "Ayukı"], answer: 2 },
-  { q: "Talas Savaşı'ndan (751) sonra İslamiyet'i topluca kabul eden ilk Türk boyu hangisidir?", options: ["Karluklar", "Yağmalar", "Oğuzlar", "Kıpçaklar"], answer: 0 },
-  { q: "Büyük Selçuklu Devleti'nde vezirlik yapmış, 'Siyasetname' adlı eseri kaleme almış ünlü devlet adamı kimdir?", options: ["Nizamülmülk", "Yusuf Has Hacip", "Gazneli Mahmut", "Ömer Hayyam"], answer: 0 },
-  { q: "Anadolu Türk siyasi birliğini kurma yolunda Osmanlı topraklarına katılan ilk beylik hangisidir?", options: ["Karesioğulları", "Germiyanoğulları", "Aydınoğulları", "Candaroğulları"], answer: 0 },
-  { q: "Osmanlı Devleti'nde ilk altın para (Sultani) hangi padişah döneminde bastırılmıştır?", options: ["Fatih Sultan Mehmet", "I. Murad", "Kanuni Sultan Süleyman", "Yavuz Sultan Selim"], answer: 0 },
-  { q: "Kuzey Afrika'da Osmanlı egemenliğinin kesinleştiği ve Haçlı-Portekiz güçlerinin yenildiği savaş hangisidir?", options: ["Vadi'üs-Seyl Savaşı", "Cerbe Deniz Savaşı", "Preveze Deniz Savaşı", "Çaldıran Savaşı"], answer: 0 },
-  { q: "Osmanlı Devleti'nde ilk kez bütçe açığını tespit edip denk bütçe hazırlayan sadrazam kimdir?", options: ["Tarhuncu Ahmed Paşa", "Köprülü Mehmed Paşa", "Sokullu Mehmed Paşa", "Merzifonlu Kara Mustafa Paşa"], answer: 0 },
-  { q: "Kırım'ın Rusya'ya ait olduğunu Osmanlı Devleti'nin resmen kabul ettiği 1792 tarihli antlaşma hangisidir?", options: ["Yaş Antlaşması", "Küçük Kaynarca Antlaşması", "Aynalıkavak Tenkihnamesi", "Bükreş Antlaşması"], answer: 0 },
-  { q: "Osmanlı Devleti'nde 'hukukun üstünlüğü' ilkesinin ilk kez kabul edildiği 1839 tarihli gelişme hangisidir?", options: ["Tanzimat Fermanı", "Islahat Fermanı", "Sened-i İttifak", "I. Meşrutiyet"], answer: 0 },
-  { q: "Mustafa Kemal'in 'Ben size taarruzu emretmiyorum, ölmeyi emrediyorum' sözünü söylediği cephe hangisidir?", options: ["Çanakkale Cephesi", "Kafkas Cephesi", "Kanal Cephesi", "Suriye-Filistin Cephesi"], answer: 0 },
-  { q: "Milli Mücadele'nin gerekçesi, amacı ve yönteminin ilk kez belirtildiği tarihi belge hangisidir?", options: ["Amasya Genelgesi", "Havza Genelgesi", "Erzurum Kongresi", "Misak-ı Milli"], answer: 0 },
-  { q: "Manda ve himaye fikrinin 'ilk kez' reddedildiği kongre aşağıdakilerden hangisidir?", options: ["Erzurum Kongresi", "Sivas Kongresi", "Balıkesir Kongresi", "Alaşehir Kongresi"], answer: 0 },
-  { q: "TBMM'nin uluslararası alanda imzaladığı ilk askeri ve siyasi antlaşma hangisidir?", options: ["Gümrü Antlaşması", "Moskova Antlaşması", "Ankara Antlaşması", "Kars Antlaşması"], answer: 0 },
-  { q: "Kurtuluş Savaşı sırasında Mustafa Kemal Paşa'ya 'Başkomutanlık' yetkisi hangi savaştan sonra verilmiştir?", options: ["Eskişehir-Kütahya Muharebeleri", "I. İnönü Savaşı", "II. İnönü Savaşı", "Sakarya Meydan Muharebesi"], answer: 0 },
-  { q: "Mustafa Kemal Atatürk'e TBMM tarafından 'Mareşallik' rütbesi ve 'Gazilik' unvanı hangi zaferin ardından tevcih edilmiştir?", options: ["Sakarya Meydan Muharebesi", "Büyük Taarruz", "I. İnönü Savaşı", "Başkomutanlık Meydan Muharebesi"], answer: 0 },
-  { q: "Lozan Barış Konferansı'na TBMM adına başdelege olarak katılan devlet adamı kimdir?", options: ["İsmet İnönü", "Rauf Orbay", "Ali Fethi Okyar", "Bekir Sami Bey"], answer: 0 },
-  { q: "Saltanatın kaldırılması ile halifeliğin kaldırılması hangi yıllarda gerçekleşmiştir?", options: ["1922 - 1924", "1923 - 1924", "1920 - 1923", "1921 - 1924"], answer: 0 },
-  { q: "Türkiye Cumhuriyeti'nde eğitim ve öğretimin birleştirilmesini sağlayan yasa hangisidir?", options: ["Tevhid-i Tedrisat Kanunu", "Medeni Kanun", "Tekalif-i Milliye", "Teşkilat-ı Esasiye"], answer: 0 },
-  { q: "Türkiye'nin ilk muhalefet partisi olan Terakkiperver Cumhuriyet Fırkası'nın ilk genel başkanı kimdir?", options: ["Kazım Karabekir", "Ali Fethi Okyar", "Rauf Orbay", "Refet Bele"], answer: 0 },
-  { q: "Cumhuriyet rejimine ve laik düzene karşı çıkan ilk geniş çaplı isyan hareketi hangisidir?", options: ["Şeyh Sait İsyanı", "Menemen Olayı", "Bozkır İsyanı", "Ahmet Anzavur İsyanı"], answer: 0 },
-  { q: "Kabotaj Kanunu'nun kabulü ve Türk denizlerinde ticaret hakkının Türklere verilmesi doğrudan hangi Atatürk ilkesiyle ilgilidir?", options: ["Milliyetçilik", "Devletçilik", "Cumhuriyetçilik", "Halkçılık"], answer: 0 },
-  { q: "Boğazlar Komisyonu'nun kaldırılarak Boğazların yönetiminin tamamen Türkiye'ye devredildiği sözleşme hangisidir?", options: ["Montrö Boğazlar Sözleşmesi", "Lozan Antlaşması", "Sadabat Paktı", "Balkan Antantı"], answer: 0 },
-  { q: "Hatay Cumhuriyeti'nin ilk ve tek cumhurbaşkanı aşağıdakilerden hangisidir?", options: ["Tayfur Sökmen", "Abdurrahman Melek", "Şükrü Saracoğlu", "Ahmet Türkpençe"], answer: 0 },
-  { q: "Türkiye, Milletler Cemiyeti'ne (Cemiyet-i Akvam) hangi devletin daveti üzerine üye olmuştur?", options: ["İspanya ve Yunanistan", "İngiltere ve Fransa", "İtalya ve Sovyetler", "Almanya ve Romanya"], answer: 0 },
-  { q: "İkinci Dünya Savaşı sonrasında Doğu Bloku ülkeleri arasında ekonomik iş birliğini sağlamak için kurulan teşkilat hangisidir?", options: ["COMECON", "Kominform", "Varşova Paktı", "NATO"], answer: 0 },
-  { q: "Türkiye Cumhuriyeti hangi savaşa asker göndererek NATO'ya üyelik sürecini hızlandırmıştır?", options: ["Kore Savaşı", "Vietnam Savaşı", "Körfez Savaşı", "Kıbrıs Barış Harekatı"], answer: 0 },
-  { q: "Kıbrıs Türklerinin haklarını savunmak ve EOKA terör örgütüne karşı koymak için kurulan direniş teşkilatı hangisidir?", options: ["Türk Mukavemet Teşkilatı (TMT)", "Volkan Cemiyeti", "Kara Çete", "Kuvay-ı İnzibatiye"], answer: 0 },
-  { q: "SSCB'nin çöküş sürecinde Mihail Gorbaçov tarafından uygulanan 'Yeniden Yapılanma' reformu hangi kavramla adlandırılır?", options: ["Perestroyka", "Glasnost", "Detant", "Varşova"], answer: 0 },
-  { q: "Bosna Hersek bağımsızlık mücadelesinin önderi olan ve 'Bilge Kral' olarak anılan devlet adamı kimdir?", options: ["Aliya İzzetbegoviç", "Slobodan Miloseviç", "Franjo Tudjman", "Radovan Karadzic"], answer: 0 }
+  { q: "Orhun Abideleri aşağıdaki Türk devletlerinden hangisi döneminde dikilmiştir?", options: ["I. Göktürk Devleti", "Uygur Devleti", "II. Göktürk (Kutluk) Devleti", "Avar Kağanlığı"], answer: 2 },
+  { q: "Maniheizm dinini kabul ederek yerleşik hayata geçen ve tapınak mimarisi geliştiren ilk Türk devleti hangisidir?", options: ["Uygurlar", "Hazarlar", "Kırgızlar", "Göktürkler"], answer: 0 },
+  { q: "Avrupa Hun Devleti'nde 'Tanrının Kırbacı' olarak bilinen ve Doğu Roma'yı Margus ile Anatolios antlaşmalarına zorlayan hükümdar kimdir?", options: ["Balamir", "Uldız", "Rua", "Attila"], answer: 3 },
+  { q: "İslamiyet öncesi Türk devletlerinde hükümdarın erkek çocuklarına verilen unvan hangisidir?", options: ["Tigin", "Şad", "Ataman", "İnanç"], answer: 0 },
+  { q: "Musevilik dinini benimseyen ve Kafkaslar'da ticari huzur dönemi (Pax Khazarica) yaşatan Türk devleti hangisidir?", options: ["Peçenekler", "Hazarlar", "Karluklar", "Bulgarlar"], answer: 1 },
+  { q: "Dünyanın en uzun destanı kabul edilen ve Kırgızlara ait olan milli destan hangisidir?", options: ["Oğuz Kağan", "Ergenekon", "Manas", "Türeyiş"], answer: 2 },
+  { q: "Asya Hun Devleti'nde orduyu onluk teşkilata göre düzenleyerek günümüz modern ordularına ilham veren Türk hükümdarı kimdir?", options: ["Teoman", "Mete Han", "Ki-ok", "Çi-çi"], answer: 1 },
+  { q: "İslamiyet öncesi Türk devletlerinde boy beylerinin katıldığı, devlet işlerinin görüşüldüğü meclise ne ad verilir?", options: ["Kurultay (Toy)", "Ayukı", "Yargu", "Tudun"], answer: 0 },
+  { q: "Bizans ordusunda ücretli askerlik yaparken Malazgirt Savaşı'nda Büyük Selçuklu saflarına geçerek zaferde rol oynayan Türk topluluğu hangisidir?", options: ["Avarlar", "Hazarlar", "Peçenekler", "Kıpçaklar"], answer: 2 },
+  { q: "Eski Türklerde ölen kişinin mezarının başına hayattayken öldürdüğü düşman sayısınca dikilen taşlara ne ad verilir?", options: ["Kurgan", "Balbal", "Yuğ", "Uçmağ"], answer: 1 },
+  { q: "Türk tarihinde matbaayı, kağıt üretimini ve hareketli harf sistemini kullanan ilk Türk devleti hangisidir?", options: ["Uygurlar", "Hunlar", "Göktürkler", "Türgişler"], answer: 0 },
+
+  // --- İLK TÜRK-İSLAM DEVLETLERİ (7 Soru) ---
+  { q: "Orta Asya'da kurulan ilk Müslüman Türk devleti aşağıdakilerden hangisidir?", options: ["Tolunoğulları", "Gazneliler", "Karahanlılar", "İhşidiler"], answer: 2 },
+  { q: "Sultan unvanını kullanan ilk Türk hükümdarı kimdir?", options: ["Gazneli Mahmut", "Tuğrul Bey", "Alparslan", "Satuk Buğra Han"], answer: 0 },
+  { q: "Büyük Selçuklu Devleti ile Bizans arasında yapılan ve Anadolu'nun kapılarını Türklere açan 1071 tarihli zafer hangisidir?", options: ["Pasinler Savaşı", "Malazgirt Meydan Muharebesi", "Miryokefalon Savaşı", "Dandanakan Savaşı"], answer: 1 },
+  { q: "Anadolu'da kurulan ilk Türk beyliklerinden Mengücekliler tarafından inşa edilen ve UNESCO Dünya Mirası listesinde yer alan şaheser hangisidir?", options: ["Divriği Ulu Camii ve Darüşşifası", "Diyarbakır Ulu Camii", "Hunat Hatun Külliyesi", "Gök Medrese"], answer: 0 },
+  { q: "Anadolu Selçuklu Devleti'nin 'tüccarlara düşük gümrük tarifesi ve devlet sigortası' uygulaması hangi alana verilen önemi gösterir?", options: ["Ordu teşkilatına", "Tarım üretimine", "Uluslararası ticarete", "İlmiye sınıfına"], answer: 2 },
+  { q: "Anadolu'nun kesin olarak Türk yurdu olduğunu tescilleyen II. Kılıçarslan dönemi savaşı hangisidir?", options: ["Yassıçemen Savaşı", "Miryokefalon Savaşı", "Kösedağ Savaşı", "Malazgirt Savaşı"], answer: 1 },
+  { q: "Mısır'da kurulan ve Moğolların batıya doğru ilerleyişini durduran 1260 tarihli Ayn Calut Savaşı'nı kazanan Türk devleti hangisidir?", options: ["Memlükler", "Eyyubiler", "Tolunoğulları", "İhşidiler"], answer: 0 },
+
+  // --- OSMANLI SİYASİ TARİHİ (10 Soru) ---
+  { q: "Osmanlı Devleti'nin Bizans tekfurlarına karşı kazandığı ilk askeri zafer kabul edilen savaş hangisidir?", options: ["Koyunhisar (Bafeus) Savaşı", "Maltepe (Pelekanon) Savaşı", "Sırpsındığı Savaşı", "Çirmen Savaşı"], answer: 0 },
+  { q: "Osmanlı Devleti'nin Rumeli'deki ilk askeri üssü ve toprağı olan kale hangisidir?", options: ["Gelibolu Kalesi", "Çimpe Kalesi", "Kilitbahir Kalesi", "Seddülbahir Kalesi"], answer: 1 },
+  { q: "Yıldırım Bayezid'in Haçlı ordusunu mağlup ettiği ve kendisine Halife tarafından 'Sultan-ı İklim-i Rum' unvanı verilen savaş hangisidir?", options: ["I. Kosova Savaşı", "Varna Savaşı", "Niğbolu Savaşı", "II. Kosova Savaşı"], answer: 2 },
+  { q: "Ankara Savaşı (1402) sonrası Osmanlı'da yaşanan ve devleti dağılma tehlikesiyle karşı karşıya bırakan döneme ne ad verilir?", options: ["Fetret Devri", "Lale Devri", "Tanzimat Devri", "Meşrutiyet Devri"], answer: 0 },
+  { q: "Akdeniz'in bir 'Türk gölü' haline gelmesinde belirleyici olan ve Barbaros Hayrettin Paşa komutasında kazanılan deniz zaferi hangisidir?", options: ["Cerbe Deniz Savaşı", "Preveze Deniz Zaferi", "İnebahtı Savaşı", "Navarin Baskını"], answer: 1 },
+  { q: "Osmanlı Devleti'nin Doğu'da en geniş sınırlara ulaştığı 1590 tarihli antlaşma hangisidir?", options: ["Kasr-ı Şirin Antlaşması", "Amasya Antlaşması", "Nasuh Paşa Antlaşması", "Ferhat Paşa Antlaşması"], answer: 3 },
+  { q: "Osmanlı padişahının protokolde Avusturya kralına denk sayılmasıyla Osmanlı'nın diplomatik üstünlüğünü kaybettiği 1606 tarihli antlaşma hangisidir?", options: ["Zitvatorok Antlaşması", "İstanbul Antlaşması", "Vasvar Antlaşması", "Karlofça Antlaşması"], answer: 0 },
+  { q: "Osmanlı Devleti'nin Batı'da ilk kez büyük çapta toprak kaybettiği 1699 tarihli antlaşma hangisidir?", options: ["Pasarofça Antlaşması", "Belgrad Antlaşması", "Karlofça Antlaşması", "Küçük Kaynarca Antlaşması"], answer: 2 },
+  { q: "Osmanlı Devleti'nin Batı'nın üstünlüğünü ilk kez kabul ettiği ve Lale Devri'ni başlatan antlaşma hangisidir?", options: ["Pasarofça Antlaşması", "Prut Antlaşması", "Yaş Antlaşması", "Edirne Antlaşması"], answer: 0 },
+  { q: "Yunanistan'ın Osmanlı Devleti'nden ayrılarak resmen bağımsızlığını kazandığı 1829 tarihli antlaşma hangisidir?", options: ["Bükreş Antlaşması", "Edirne Antlaşması", "Hünkar İskelesi Antlaşması", "Berlin Antlaşması"], answer: 1 },
+
+  // --- OSMANLI KÜLTÜR VE MEDENİYETİ (8 Soru) ---
+  { q: "Osmanlı Devleti'nde sadrazam sefere çıktığında başkentte yerine vekalet eden görevli kimdir?", options: ["Kazasker", "Nişancı", "Sadaret Kethüdası (Kaymakamı)", "Kaptan-ı Derya"], answer: 2 },
+  { q: "Osmanlı ordu teşkilatında Tımarlı Sipahilerin yetiştirmekle yükümlü olduğu atlı askerlere ne ad verilir?", options: ["Cebelü", "Ulufe", "Humbaracı", "Lağımcı"], answer: 0 },
+  { q: "Osmanlı Devleti'nde gelirleri hükümdar eşleri, kızları ve annelerine ayrılan arazi türü hangisidir?", options: ["Mukataa", "Paşmaklık", "Yurtluk", "Malikane"], answer: 1 },
+  { q: "Mimar Sinan'ın 'çıraklık, kalfalık ve ustalık' eserleri kronolojik olarak hangi seçenekte doğru verilmiştir?", options: ["Süleymaniye - Selimiye - Şehzade", "Şehzade - Süleymaniye - Selimiye", "Selimiye - Şehzade - Süleymaniye", "Şehzade - Selimiye - Süleymaniye"], answer: 1 },
+  { q: "Osmanlı'da lonca teşkilatında üretilen malların kalitesini ve tavan satış fiyatını belirleme uygulamasına ne ad verilir?", options: ["Narh sistemi", "İltizam sistemi", "Gedik sistemi", "Müsadere sistemi"], answer: 0 },
+  { q: "Osmanlı Devleti'nde ilk Türkçe basılı eseri çıkaran İbrahim Müteferrika Matbaası'nda basılan ilk eser hangisidir?", options: ["Cihannüma", "Vankulu Lügati", "Tuhfetü'l-Kibar", "Tarih-i Naima"], answer: 1 },
+  { q: "Osmanlı'da haksız kazanç sağlayan veya vefat eden memurların mallarına devlet adına el koyma usulü hangisidir?", options: ["Müsadere", "Gedik", "İstimalet", "İskan"], answer: 0 },
+  { q: "Osmanlı minyatür sanatçılarına verilen genel unvan aşağıdakilerden hangisidir?", options: ["Hattat", "Müzehhib", "Nakkaş", "Hakkak"], answer: 2 },
+
+  // --- MİLLİ MÜCADELE DÖNEMİ (8 Soru) ---
+  { q: "Milli Mücadele'de halkı bilinçlendirmek adına 'İzmir'in işgalinin mitinglerle protesto edilmesini' isteyen ilk genelge hangisidir?", options: ["Amasya Genelgesi", "Havza Genelgesi", "Tamim-i İrade", "Alaşehir Kararları"], answer: 1 },
+  { q: "'Vatanın bütünlüğü, milletin bağımsızlığı tehlikededir' kararı ilk kez nerede ilan edilmiştir?", options: ["Amasya Genelgesi", "Erzurum Kongresi", "Sivas Kongresi", "Misak-ı Milli"], answer: 0 },
+  { q: "Bütün milli cemiyetlerin 'Anadolu ve Rumeli Müdafaa-i Hukuk Cemiyeti' adı altında birleştirildiği kongre hangisidir?", options: ["Erzurum Kongresi", "Balıkesir Kongresi", "Sivas Kongresi", "Pozantı Kongresi"], answer: 2 },
+  { q: "Ali Fuat Paşa'nın Batı Cephesi Komutanlığı'na atanmasıyla Temsil Heyeti ilk kez hangi gücünü kullanmıştır?", options: ["Yasama yetkisini", "Yürütme yetkisini", "Yargı yetkisini", "Diplomatik yetkiyi"], answer: 1 },
+  { q: "İstanbul Hükümeti'nin Temsil Heyeti'nin hukuki varlığını resmen ve ilk kez tanıdığı gelişme hangisidir?", options: ["Bilecik Görüşmeleri", "Amasya Görüşmeleri", "Son Osmanlı Meclis-i Mebusanı", "Mudanya Mütarekesi"], answer: 1 },
+  { q: "İtilaf Devletleri'nin Sevr Barış Antlaşması'nı TBMM'ye kabul ettirmek amacıyla başlattığı saldırıyla gerçekleşen savaş hangisidir?", options: ["I. İnönü Savaşı", "Sakarya Savaşı", "Başkomutanlık Meydan Muharebesi", "Çanakkale Savaşı"], answer: 0 },
+  { q: "TBMM'yi tanıyan ilk Müslüman / doğulu devlet aşağıdakilerden hangisidir?", options: ["İran", "Mısır", "Afganistan", "Pakistan"], answer: 2 },
+  { q: "İsmet İnönü komutasında kazanılan ve Mustafa Kemal'in 'Siz orada sadece düşmanı değil, milletin makus talihini de yendiniz' dediği savaş hangisidir?", options: ["I. İnönü Muharebesi", "II. İnönü Muharebesi", "Kütahya-Eskişehir Savaşları", "Büyük Taarruz"], answer: 1 },
+
+  // --- İNKILAP TARİHİ VE ATATÜRK DÖNEMİ (5 Soru) ---
+  { q: "Yeni Türk Devleti'nin ekonomi politikasının belirlendiği ve 'Misak-ı İktisadi' kararlarının alındığı toplantı hangisidir?", options: ["I. İzmir İktisat Kongresi", "Londra İktisat Konferansı", "Ankara Kalkınma Meclisi", "Sivas İktisat Kongresi"], answer: 0 },
+  { q: "Medeni Kanun'un kabulüyle (1926) Türk kadınına tanınmayan hak aşağıdakilerden hangisidir?", options: ["Miras eşitliği", "Mahkemede tanıklık eşitliği", "İstediği mesleğe girebilme", "Milletvekili seçme ve seçilme hakkı"], answer: 3 },
+  { q: "Cumhuriyetçilik ilkesinin yönetimde doğrudan hayata geçirildiğini gösteren en temel inkılap adımı hangisidir?", options: ["Saltanatın kaldırılması ve Cumhuriyetin ilanı", "Şapka İnkılabı", "Aşar Vergisinin kaldırılması", "Metrik sisteme geçilmesi"], answer: 0 },
+  { q: "Batı sınırının güvenliğini sağlamak amacıyla Türkiye, Yunanistan, Yugoslavya ve Romanya arasında kurulan ittifak hangisidir?", options: ["Sadabat Paktı", "Balkan Antantı", "Akdeniz Paktı", "Bağdat Paktı"], answer: 1 },
+  { q: "Türkiye'nin doğu sınırlarının güvenliğini sağlamak amacıyla İran, Irak ve Afganistan ile imzaladığı 1937 tarihli pakt hangisidir?", options: ["Balkan Paktı", "Sadabat Paktı", "CENTO", "Varşova Paktı"], answer: 1 }
 ];
 
 let peer = null;
@@ -282,7 +326,7 @@ function evaluateRound() {
   }
 }
 
-// Client Görünüm Yönetimi
+// Client Arayüzü
 let selectedChoice = null;
 
 function handleClientData(data) {
@@ -329,7 +373,7 @@ function handleClientData(data) {
   } else if (data.type === 'GAME_OVER') {
     document.getElementById('quiz-card').style.display = 'none';
     document.getElementById('round-card').style.display = 'block';
-    document.getElementById('round-result-title').innerText = "🏆 30 Soru Tamamlandı! 🏆";
+    document.getElementById('round-result-title').innerText = "🏆 50 Soru Tamamlandı! 🏆";
     document.getElementById('round-correct-ans').innerText = "Yarışma sona erdi.";
   }
 }
@@ -353,3 +397,5 @@ function submitAnswer(idx, btnElem) {
 </script>
 </body>
 </html>
+
+```
