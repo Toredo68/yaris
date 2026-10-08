@@ -2,12 +2,12 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>AGS Tarih - Özel Yarışma</title>
+  <title>AGS Tarih - 100 Soru Eleyici Maraton</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0b1329; color: #f8fafc; padding: 20px; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .card { background: #1e293b; border-radius: 16px; padding: 28px; width: 100%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .card { background: #1e293b; border-radius: 16px; padding: 28px; width: 100%; max-width: 680px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     h2, h3 { margin-top: 0; color: #38bdf8; text-align: center; }
     input { width: 100%; padding: 14px; background: #0f172a; border: 2px solid #334155; color: #fff; border-radius: 10px; font-size: 16px; margin-bottom: 16px; outline: none; }
     input:focus { border-color: #38bdf8; }
@@ -21,14 +21,18 @@
     .badge { background: #0f172a; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #94a3b8; border: 1px solid #334155; }
     .player-chip { background: #0f172a; border: 1px solid #334155; padding: 8px 14px; border-radius: 20px; margin: 4px; display: inline-block; font-size: 14px; }
     .leaderboard-row { display: flex; justify-content: space-between; padding: 12px; background: #0f172a; border-radius: 8px; margin-bottom: 8px; font-weight: 600; }
+    .diff-badge { font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: bold; }
+    .diff-orta { background: #0369a1; color: #bae6fd; }
+    .diff-zor { background: #b45309; color: #fef3c7; }
+    .diff-eleyici { background: #be123c; color: #ffe4e6; }
   </style>
 </head>
 <body>
 
   <!-- GİRİŞ EKRANI -->
   <div id="login-card" class="card">
-    <h2>AGS Tarih Yarışması</h2>
-    <p style="text-align: center; color: #94a3b8; font-size: 14px;">85 Soru - 20 Saniye - Hızlı Bilen Kazanır!</p>
+    <h2>AGS Tarih Maratonu (100 Soru)</h2>
+    <p style="text-align: center; color: #94a3b8; font-size: 14px;">Orta, Zor ve Eleyici Sorular | Comeback Puan Sistemi</p>
     <input type="text" id="my-name" placeholder="Yarışmacı Adınızı Yazın..." maxlength="15">
     <button class="btn" onclick="enterGame()">Lobiye Katıl</button>
   </div>
@@ -51,7 +55,10 @@
   <!-- SORU EKRANI -->
   <div id="quiz-card" class="card" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span class="badge" id="q-counter">Soru 1/85</span>
+      <div>
+        <span class="badge" id="q-counter">Soru 1/100</span>
+        <span class="diff-badge" id="q-diff">Orta</span>
+      </div>
       <span class="badge" id="time-text" style="color: #f59e0b;">20s</span>
     </div>
 
@@ -76,102 +83,130 @@
   </div>
 
 <script>
-const ROOM_NAME = "ags-genel-tarih-85-final";
+const ROOM_NAME = "ags-tarih-100-maraton-v1";
 
 const questions = [
   // --- İSLAMİYET ÖNCESİ TÜRK TARİHİ (40 Soru) ---
-  { q: "Türk adının anlamını Kaşgarlı Mahmut Divanü Lugati't-Türk adlı eserinde nasıl tanımlamıştır?", options: ["Türeyen / Çoğalan", "Olgunluk Çağı", "Güçlü / Kuvvetli", "Miğfer"], answer: 1 },
-  { q: "Orhun Abideleri aşağıdaki Türk devletlerinden hangisi döneminde dikilmiştir?", options: ["I. Göktürk Devleti", "Uygur Devleti", "II. Göktürk (Kutluk) Devleti", "Avar Kağanlığı"], answer: 2 },
-  { q: "Maniheizm dinini kabul ederek yerleşik hayata geçen ilk Türk devleti hangisidir?", options: ["Uygurlar", "Hazarlar", "Kırgızlar", "Göktürkler"], answer: 0 },
-  { q: "Avrupa Hun Devleti'nde Doğu Roma'yı Margus Antlaşması'na zorlayan hükümdar kimdir?", options: ["Balamir", "Uldız", "Rua", "Attila"], answer: 3 },
-  { q: "İslamiyet öncesi Türk devletlerinde hükümdarın erkek çocuklarına verilen unvan hangisidir?", options: ["Tigin", "Şad", "Ataman", "İnanç"], answer: 0 },
-  { q: "Musevilik dinini benimseyen tek Türk devleti hangisidir?", options: ["Peçenekler", "Hazarlar", "Karluklar", "Bulgarlar"], answer: 1 },
-  { q: "Dünyanın en uzun destanı kabul edilen ve Kırgızlara ait olan milli destan hangisidir?", options: ["Oğuz Kağan", "Ergenekon", "Manas", "Türeyiş"], answer: 2 },
-  { q: "Asya Hun Devleti'nde orduyu onluk teşkilata göre ilk kez düzenleyen hükümdar kimdir?", options: ["Teoman", "Mete Han", "Ki-ok", "Çi-çi"], answer: 1 },
-  { q: "İslamiyet öncesi Türk devletlerinde devlet işlerinin görüşülüp karara bağlandığı meclise ne ad verilir?", options: ["Kurultay (Toy)", "Ayukı", "Yargu", "Tudun"], answer: 0 },
-  { q: "Malazgirt Savaşı'nda Bizans saflarından Büyük Selçuklu tarafına geçen Türk topluluğu hangisidir?", options: ["Avarlar", "Hazarlar", "Peçenekler", "Kıpçaklar"], answer: 2 },
-  { q: "Eski Türklerde mezar taşı olarak dikilen ve öldürülen düşmanı simgeleyen taşlara ne ad verilir?", options: ["Kurgan", "Balbal", "Yuğ", "Uçmağ"], answer: 1 },
-  { q: "Türk tarihinde matbaayı ve hareketli harf sistemini ilk kez kullanan devlet hangisidir?", options: ["Uygurlar", "Hunlar", "Göktürkler", "Türgişler"], answer: 0 },
-  { q: "Bilinen ilk Türk devleti aşağıdakilerden hangisidir?", options: ["Göktürkler", "Asya Hun Devleti", "Uygurlar", "Avarlar"], answer: 1 },
-  { q: "Kendi adına para bastıran ilk Türk hükümdarı kimdir?", options: ["Baga Tarkan", "Bumin Kağan", "Mete Han", "Kutluk Kağan"], answer: 0 },
-  { q: "Türk adıyla kurulan ilk Türk devleti hangisidir?", options: ["I. Göktürk Devleti", "Asya Hun", "Uygurlar", "Hazarlar"], answer: 0 },
-  { q: "İslamiyet öncesinde hükümdara yönetme yetkisinin Gök Tengri tarafından verildiğine olan inanç hangisidir?", options: ["Töre", "Kut", "Kurgan", "Yargu"], answer: 1 },
-  { q: "Eski Türklerde ölen kişinin ardından düzenlenen cenaze törenine ne ad verilir?", options: ["Yuğ", "Balbal", "Uçmağ", "Tamu"], answer: 0 },
-  { q: "Eski Türk inanışında cehennem kavramına verilen isim hangisidir?", options: ["Uçmağ", "Tamu", "Yuğ", "Kurgan"], answer: 1 },
-  { q: "İstanbul'u kuşatan ilk Türk devleti aşağıdakilerden hangisidir?", options: ["Avarlar", "Hunlar", "Peçenekler", "Bulgarlar"], answer: 0 },
-  { q: "Tarihte ilk kez atı evcilleştirdiği kabul edilen ve Tomris Hatun'un da önderlik ettiği topluluk hangisidir?", options: ["İskitler (Sakalar)", "Kimmerler", "Hunlar", "Sarmatlar"], answer: 0 },
-  { q: "İslamiyet öncesi Türk devletlerinde vezir / başbakan makamına verilen ad hangisidir?", options: ["Ayguçı (Üge)", "Tudun", "Yabgu", "Tarkan"], answer: 0 },
-  { q: "Eski Türklerde yazısız hukuk kurallarına ne ad verilir?", options: ["Töre", "Yargu", "Kurultay", "Toy"], answer: 0 },
-  { q: "Hükümdarın tahta çıkışında veya kutlamalarda halka ziyafet vermesi geleneğine ne ad verilir?", options: ["Toy (Şölen)", "Yuğ", "Süvari", "Balbal"], answer: 0 },
-  { q: "Avrupa'da Hristiyanlığı kabul ederek zamanla Slavlaşan ve benliğini kaybeden Türk devleti hangisidir?", options: ["Tuna Bulgarları", "İtil Bulgarları", "Karluklar", "Uygurlar"], answer: 0 },
-  { q: "İslamiyet'i kabul eden ilk Türk devleti kabul edilen İtil (Volga) Bulgarları hangi hükümdar döneminde Müslüman olmuştur?", options: ["Almış Han", "Kubrat Han", "Kurum Han", "Boris Han"], answer: 0 },
-  { q: "Bizans İmparatorluğu ile doğrudan ilk elçi değişimini gerçekleştiren Türk devleti hangisidir?", options: ["I. Göktürk Devleti (İstemi Yabgu)", "Uygurlar", "Avarlar", "Hunlar"], answer: 0 },
-  { q: "Göktürk Devleti'nin kurucusu olan ve 'İl Kağan' unvanını alan hükümdar kimdir?", options: ["Bumin Kağan", "İstemi Yabgu", "Mukan Kağan", "Kutluk Kağan"], answer: 0 },
-  { q: "Çin esaretine karşı bağımsızlık isyanı başlatan ve 39 arkadaşıyla sarayı basan efsanevi Türk kahramanı kimdir?", options: ["Kürşad", "Tonyukuk", "Kül Tigin", "Baga Tarkan"], answer: 0 },
-  { q: "Göktürklerde bağımsızlığı yeniden kazandığı için 'İlteriş' (derleyen, toplayan) unvanını alan hükümdar kimdir?", options: ["Kutluk Kağan", "Bilge Kağan", "Kapgan Kağan", "Mukan Kağan"], answer: 0 },
-  { q: "Türk tarihinin ilk veziri ve ilk Türk tarihçisi/yazarı kabul edilen devlet adamı kimdir?", options: ["Vezir Tonyukuk", "Yolluğ Tigin", "Nizamülmülk", "Kaşgarlı Mahmut"], answer: 0 },
-  { q: "Orhun Yazıtlarını okuyan ve çözen Danimarkalı dilbilimci kimdir?", options: ["Vilhelm Thomsen", "W. Radloff", "Gyula Nemeth", "L. Ligeti"], answer: 0 },
-  { q: "Uygur Devleti'nin kurucusu kimdir?", options: ["Kutluk Bilge Kül Kağan", "Bögü Kağan", "Moyen-Çor", "Bumin Kağan"], answer: 0 },
-  { q: "Uygurlarda Maniheizm dininin resmiyet kazanması hangi hükümdar döneminde gerçekleşmiştir?", options: ["Bögü Kağan", "Moyen-Çor", "Kutluk Bilge", "Bayan Kağan"], answer: 0 },
-  { q: "Cengiz Han'a (Moğollara) itaat eden ilk Müslüman Türk topluluğu hangisidir?", options: ["Karluklar", "Kırgızlar", "Uygurlar", "Peçenekler"], answer: 0 },
-  { q: "Cengiz Han'a itaat eden ilk Türk devleti hangisidir?", options: ["Kırgızlar", "Karluklar", "Uygurlar", "Oğuzlar"], answer: 0 },
-  { q: "Türk tarihinde 'Turan Taktiği' veya 'Kurt Kapanı' olarak bilinen sahte ricat stratejisi hangi birliklerle yürütülürdü?", options: ["Hafif Süvariler", "Piyadeler", "Mancınıkçılar", "Ağır Zırhlılar"], answer: 0 },
-  { q: "İslamiyet öncesinde ordu komutanlarına verilen unvan hangisidir?", options: ["Subaşı / Tarkan", "Tudun", "Bitikçi", "Yabgu"], answer: 0 },
-  { q: "Eski Türk toplum yapısında 'aile' anlamına gelen en küçük sosyal birim hangisidir?", options: ["Oguş", "Urug", "Bodun", "İl"], answer: 0 },
-  { q: "Eski Türk toplum yapısında ailelerin birleşmesiyle oluşan 'sülale / soy' birimine ne ad verilir?", options: ["Urug", "Oguş", "Boy", "Bodun"], answer: 0 },
-  { q: "Eski Türklerde devlet / millet anlamına gelen en üst teşkilat yapısı hangisidir?", options: ["İl (El)", "Bodun", "Boy", "Urug"], answer: 0 },
+  { q: "Pazırık Kurganı'ndan çıkarılan dünyanın en eski düğümlü halısı hangi Türk topluluğuna aittir?", options: ["Hunlar", "İskitler", "Göktürkler", "Uygurlar"], answer: 0, diff: "Orta" },
+  { q: "İslamiyet öncesi Türk devletlerinde hükümdarın eşi olan Hatun'un başkanlık ettiği kurultay/elçi kabul heyetine ne ad verilirdi?", options: ["Ayukı", "Terken Meclisi", "Toygun", "Yargu"], answer: 1, diff: "Zor" },
+  { q: "Kafkasların Araplaşmasını engelleyerek İslam ordularıyla Belencer Savaşı'nı yapan Türk devleti hangisidir?", options: ["Hazarlar", "Avarlar", "Karluklar", "Türgişler"], answer: 0, diff: "Orta" },
+  { q: "Emevilerle Haristan Savaşı'nı yaparak İslamiyet'in Orta Asya'da yayılmasını bir süre geciktiren Türgiş hükümdarı kimdir?", options: ["Baga Tarkan", "Sulu Kağan", "Uçelik Kağan", "Mukan Kağan"], answer: 1, diff: "Zor" },
+  { q: "Eski Türklerde devlet hazinesinden ve mali işlerden sorumlu görevliye ne ad verilirdi?", options: ["Tudun", "Ağılığ (Ağıcı)", "Bitikçi", "Yabgu"], answer: 1, diff: "Eleyici" },
+  { q: "Uygur Devleti'nde Maniheizm tapınaklarına verilen özel isim aşağıdakilerden hangisidir?", options: ["Stupa", "Balbal", "Bark", "Kurgan"], answer: 0, diff: "Zor" },
+  { q: "Bizans kaynaklarında 'Kuman', Rus yıllıklarında ise 'Polovtsı' adıyla anılan Türk boyu hangisidir?", options: ["Kıpçaklar", "Peçenekler", "Oğuzlar", "Uzlar"], answer: 0, diff: "Orta" },
+  { q: "Göktürk Devleti'nde vergi memuru ve sivil yönetici olarak görev yapan idareci hangisidir?", options: ["Tudun", "Tarkan", "Apa", "Yargıcı"], answer: 0, diff: "Orta" },
+  { q: "İslamiyet öncesinde saray muhafızlarına ve hükümdarın koruma birliğine ne ad verilirdi?", options: ["Böri", "Cebelü", "Alp", "Yelme"], answer: 0, diff: "Eleyici" },
+  { q: "Hazar Devleti'nde Müslüman tebaanın davalarına bakan özel yargıca ne ad verilirdi?", options: ["Kadı-i Leşker", "Gadı", "Muhtesip", "Yarguçı"], answer: 1, diff: "Eleyici" },
+  { q: "Oğuz Kağan Destanı'nda Mete Han'ın seferleri ve Türk boylarına ad verişi hangi hükümdarla özdeşleştirilir?", options: ["Teoman", "Mete Han", "Bumin Kağan", "Attila"], answer: 1, diff: "Orta" },
+  { q: "İslamiyet öncesinde ordunun keşif ve istihbarat amaçlı öncü birliğine ne ad verilirdi?", options: ["Yelme", "Böri", "Tarkan", "Eşkinci"], answer: 0, diff: "Zor" },
+  { q: "Altın Elbiseli Adam zırhının bulunduğu ve İskit/Hun kültürüne ait olduğu kabul edilen kurgan hangisidir?", options: ["Esik Kurganı", "Pazırık Kurganı", "Noin-Ula Kurganı", "Şibe Kurganı"], answer: 0, diff: "Orta" },
+  { q: "Tuna Bulgarlarında Hristiyanlığı resmi din olarak kabul eden ve 'Çar' unvanını ilk kullanan hükümdar kimdir?", options: ["Boris Han", "Kurum Han", "Omurtag Han", "Simeon"], answer: 0, diff: "Zor" },
+  { q: "İslamiyet öncesinde hükümdar çocuklarının (Tigin) eğitiminden sorumlu eğitmenlere ne ad verilirdi?", options: ["Ataman (İnal)", "Lala", "Atabey", "Subaşı"], answer: 0, diff: "Orta" },
+  { q: "Kutluk Devleti'nin kurucusu Kutluk Kağan'a 'İlteriş' unvanını veren danışman ve vezir kimdir?", options: ["Tonyukuk", "Kül Tigin", "Yolluğ Tigin", "Baga Tarkan"], answer: 0, diff: "Orta" },
+  { q: "Kendi adına alfabe oluşturan Türk toplulukları aşağıdakilerden hangisinde birlikte verilmiştir?", options: ["Göktürk - Uygur", "Hun - Avar", "Hazar - Kıpçak", "Uygur - Kırgız"], answer: 0, diff: "Orta" },
+  { q: "İslamiyet öncesi Türk ordusunda savaşta düşmanı şaşırtmak için kullanılan ıslıklı okun mucidi kimdir?", options: ["Mete Han", "Bumin Kağan", "Attila", "Teoman"], answer: 0, diff: "Orta" },
+  { q: "Eski Türklerde göçebe hayat tarzında çadırların etrafında oluşturulan korunaklı konaklama yerine ne denirdi?", options: ["Yurt", "Ordu (Orda)", "Kermen", "Balık"], answer: 1, diff: "Eleyici" },
+  { q: "Orhun Abideleri'nde yazıtları taşlara kazıyan ve metinlerin yazarı olan ilk Türk edibi kimdir?", options: ["Yolluğ Tigin", "Tonyukuk", "Bilge Kağan", "Kül Tigin"], answer: 0, diff: "Orta" },
+  { q: "İtil Bulgarlarını ziyaret ederek onların İslamiyet'i kabul edişini 'Rihle' adlı seyahatnamesinde anlatan Arap seyyah kimdir?", options: ["İbn Fadlan", "İbn Batuta", "El-Mesudi", "El-Biruni"], answer: 0, diff: "Zor" },
+  { q: "Kıpçakların Ruslarla yaptığı mücadeleleri anlatan ünlü Rus milli destanı hangisidir?", options: ["İgor Destanı", "Nibelungen", "Şehname", "Gılgamış"], answer: 0, diff: "Orta" },
+  { q: "Kıpçak Türkçesi, Farsça ve Latince sözlük niteliğinde olan ünlü dil yadigarı hangisidir?", options: ["Codex Cumanicus", "Dîvânü Lugâti't-Türk", "Kutadgu Bilig", "Muhakemetü'l-Lugateyn"], answer: 0, diff: "Orta" },
+  { q: "Sasanilerle ittifak kurarak Akhunlar (Eftalitler) devletine son veren Göktürk hükümdarı/yabgusu kimdir?", options: ["İstemi Yabgu", "Bumin Kağan", "Mukan Kağan", "Tardu"], answer: 0, diff: "Zor" },
+  { q: "Karluk, Yağma, Çiğil ve Tuhsi boylarının birleşmesiyle temeli atılan Türk-İslam devleti hangisidir?", options: ["Karahanlılar", "Gazneliler", "Büyük Selçuklu", "Harzemşahlar"], answer: 0, diff: "Orta" },
+  { q: "Macarların Hristiyanlığı seçerek Türklük özelliklerini kaybetmesinde etkili olan liderleri kimdir?", options: ["Arpad", "Körsan", "Almış", "Attila"], answer: 0, diff: "Eleyici" },
+  { q: "Eski Türklerde 'Köl İç Çor' ve 'Ongin' yazıtları hangi döneme ait anıtlardır?", options: ["II. Göktürk Dönemi", "Uygur Dönemi", "Hun Dönemi", "Kırgız Dönemi"], answer: 0, diff: "Eleyici" },
+  { q: "Uygur Devleti'nin başkenti olan ve 'Ordu-Balık' olarak bilinen şehir hangisidir?", options: ["Karabalgasun", "Ötüken", "Balasagun", "Kaşgar"], answer: 0, diff: "Orta" },
+  { q: "Göktürklerde Batı kanadını yöneten ve 'Yabgu' unvanı taşıyan hanedan üyesinin sembolik merkezi neresiydi?", options: ["Akdağ (Tanrı Dağları)", "Ötüken", "Yayık", "İdil"], answer: 0, diff: "Eleyici" },
+  { q: "İslamiyet öncesi Türklerde 'Yargu' adı verilen yüksek mahkemenin başında kim bulunurdu?", options: ["Hükümdar (Kağan)", "Ayguçı", "Tarkan", "Tudun"], answer: 0, diff: "Zor" },
+  { q: "Avar Kağanlığı'na son vererek Orta Avrupa'daki varlıklarını bitiren devlet hangisidir?", options: ["Frank İmparatorluğu", "Doğu Roma", "Sasaniler", "Göktürkler"], answer: 0, diff: "Zor" },
+  { q: "Kırgızların başkenti ve Türklerin kutlu vatan saydığı ormanlık merkez neresidir?", options: ["Ötüken", "Talas", "Buhara", "Semerkant"], answer: 0, diff: "Orta" },
+  { q: "Eski Türk inanışında ölümden sonra ruhun kuş olup uçtuğuna inanılan cennet kavramı hangisidir?", options: ["Uçmağ", "Tamu", "Balbal", "Kam"], answer: 0, diff: "Orta" },
+  { q: "İslamiyet öncesinde din adamlarına (şamanlara) verilen adlar hangisinde tam verilmiştir?", options: ["Kam - Baksı", "Toygun - Ayguçı", "Tudun - Şad", "Apa - Tarkan"], answer: 0, diff: "Orta" },
+  { q: "Göktürk Devleti'nin en parlak dönemini yaşatan hükümdar kimdir?", options: ["Mukan Kağan", "Bumin Kağan", "Bilge Kağan", "İstemi Yabgu"], answer: 0, diff: "Orta" },
+  { q: "Uygurlarda duvar resimlerine (fresk) verilen geleneksel ad hangisidir?", options: ["Bediz", "Balbal", "Bark", "Bitik"], answer: 0, diff: "Zor" },
+  { q: "Türk tarihinde ilk kez kütüphane kuran ve minyatür sanatının ilk örneklerini veren devlet hangisidir?", options: ["Uygurlar", "Göktürkler", "Hunlar", "Karluklar"], answer: 0, diff: "Orta" },
+  { q: "İskitlerin en önemli hükümdarı olan ve Firdevsi'nin Şehname'sinde 'Afrasyab' adıyla geçen komutan kimdir?", options: ["Alp Er Tunga", "Tomris Hatun", "Mete Han", "Balamir"], answer: 0, diff: "Orta" },
+  { q: "Oğuzların Müslüman olanlarına 'Türkmen', Hristiyan olanlarına ise ne ad verilmiştir?", options: ["Uz", "Kuman", "Peçenek", "Avar"], answer: 0, diff: "Orta" },
+  { q: "Eski Türklerde hükümdarın tahta çıkışında halkın huzurunda yapılan tahta geçme ritüeline ne ad verilirdi?", options: ["Keçe Üzerinde Kaldırma", "Kılıç Kuşanma", "Cülus Töreni", "Hutbe Okutma"], answer: 0, diff: "Eleyici" },
 
   // --- İLK TÜRK-İSLAM DEVLETLERİ (15 Soru) ---
-  { q: "Orta Asya'da kurulan ilk Müslüman Türk devleti hangisidir?", options: ["Tolunoğulları", "Gazneliler", "Karahanlılar", "İhşidiler"], answer: 2 },
-  { q: "Sultan unvanını kullanan ilk Türk hükümdarı kimdir?", options: ["Gazneli Mahmut", "Tuğrul Bey", "Alparslan", "Satuk Buğra Han"], answer: 0 },
-  { q: "1071 yılında Anadolu'nun kapılarını Türklere açan zafer hangisidir?", options: ["Pasinler Savaşı", "Malazgirt Meydan Muharebesi", "Miryokefalon Savaşı", "Dandanakan Savaşı"], answer: 1 },
-  { q: "Divriği Ulu Camii ve Darüşşifası hangi ilk Türk beyliği döneminde inşa edilmiştir?", options: ["Mengücekliler", "Danişmentliler", "Saltuklular", "Artuklular"], answer: 0 },
-  { q: "Anadolu Selçuklularının tüccarlara düşük gümrük ve devlet sigortası uygulaması hangi alanı geliştirmeye yöneliktir?", options: ["Orduyu", "Tarımsal üretimi", "Uluslararası ticareti", "İlmiye sınıfını"], answer: 2 },
-  { q: "Anadolu'nun kesin olarak Türk yurdu olduğunu tescilleyen II. Kılıçarslan dönemi zaferi hangisidir?", options: ["Yassıçemen Savaşı", "Miryokefalon Savaşı", "Kösedağ Savaşı", "Malazgirt Savaşı"], answer: 1 },
-  { q: "1260 Ayn Calut Savaşı ile Moğolların ilerleyişini durduran Türk devleti hangisidir?", options: ["Memlükler", "Eyyubiler", "Tolunoğulları", "İhşidiler"], answer: 0 },
-  { q: "Türk-İslam edebiyatının ilk yazılı eseri kabul edilen Kutadgu Bilig'in yazarı kimdir?", options: ["Yusuf Has Hacip", "Kaşgarlı Mahmut", "Edip Ahmet Yükneki", "Ahmet Yesevi"], answer: 0 },
-  { q: "İlk Türkçe sözlük olan Divanü Lugati't-Türk kime sunulmuştur?", options: ["El-Muktedi Billah", "Gazneli Mahmut", "Sultan Sencer", "Tuğrul Bey"], answer: 0 },
-  { q: "Büyük Selçuklu Devleti'nin resmi dili ve edebiyat dili hangisidir?", options: ["Farsça", "Arapça", "Türkçe", "Çağatayca"], answer: 0 },
-  { q: "Anadolu'da kurulan ilk Türk beyliği aşağıdakilerden hangisidir?", options: ["Saltuklular", "Danişmentliler", "Mengücekliler", "Artuklular"], answer: 0 },
-  { q: "Anadolu'daki ilk medrese sayılan 'Yağıbasan Medresesi' hangi beylik tarafından yapılmıştır?", options: ["Danişmentliler", "Saltuklular", "Artuklular", "Çaka Beyliği"], answer: 0 },
-  { q: "İlk Türk denizcisi kabul edilen ve İzmir merkezli beylik kuran komutan kimdir?", options: ["Çaka Bey", "Karesi Bey", "Umur Bey", "Saruhan Bey"], answer: 0 },
-  { q: "Büyük Selçuklu Devleti'nde mali işlerden sorumlu divan hangisidir?", options: ["Divan-ı İstifa", "Divan-ı Arz", "Divan-ı Tuğra", "Divan-ı İşraf"], answer: 0 },
-  { q: "Anadolu Selçuklu Devleti'nin Moğollara yenilerek dağılma sürecine girdiği 1243 tarihli savaş hangisidir?", options: ["Kösedağ Savaşı", "Yassıçemen Savaşı", "Miryokefalon", "Katvan Savaşı"], answer: 0 },
+  { q: "Karahanlılar Devleti'nde hükümdar çocuklarına ders veren hocalara ne unvan verilirdi?", options: ["Atabey", "Lala", "Ata (Hoca)", "İnal"], answer: 2, diff: "Eleyici" },
+  { q: "Büyük Selçuklu Devleti'nde devlet güvenliğini sağlayan, gizli haber alma ve istihbarat teşkilatı hangisidir?", options: ["Divan-ı Berid", "Divan-ı İşraf", "Divan-ı İnşa", "Divan-ı Arz"], answer: 0, diff: "Zor" },
+  { q: "Türk-İslam devletlerinde sınır boylarında kurulan, hem askeri savunma hem kervansaray görevi gören korunaklı yapılara ne denir?", options: ["Ribat", "Kümbet", "Tekke", "Külliye"], answer: 0, diff: "Orta" },
+  { q: "Kudüs'ü 1187 Hıttin Savaşı ile Haçlılardan geri alan ünlü İslam hükümdarı kimdir?", options: ["Selahaddin Eyyubi", "Nureddin Zengi", "Baybars", "Kutuz"], answer: 0, diff: "Orta" },
+  { q: "Anadolu Selçuklularında donanma komutanına verilen unvan hangisidir?", options: ["Melikü's-Sevahil (Reisü'l-Bahr)", "Kaptan-ı Derya", "Emir-i Ahur", "Subaşı"], answer: 0, diff: "Zor" },
+  { q: "Büyük Selçuklularda mali teftiş yapan ve devlet kurumlarını denetleyen divan hangisidir?", options: ["Divan-ı İşraf", "Divan-ı İstifa", "Divan-ı Arz", "Divan-ı Mezalim"], answer: 0, diff: "Orta" },
+  { q: "Anadolu Selçuklu Devleti'nin ilk altın parasını bastıran hükümdar kimdir?", options: ["II. Kılıçarslan", "I. Mesut", "I. Alaeddin Keykubad", "I. Gıyaseddin Keyhüsrev"], answer: 0, diff: "Zor" },
+  { q: "Harzemşahlar Devleti'nin Moğollarla yaşadığı ve büyük yıkıma yol açan diplomatik kriz hangisidir?", options: ["Otrar Faciası", "Katvan Savaşı", "Yassıçemen Savaşı", "Ayn Calut"], answer: 0, diff: "Orta" },
+  { q: "Anadolu Selçuklu Devleti'nin en parlak dönemini yaşadığı ve Alanya'yı fetheden hükümdar kimdir?", options: ["I. Alaeddin Keykubad", "II. Kılıçarslan", "I. İzzettin Keykavus", "Süleyman Şah"], answer: 0, diff: "Orta" },
+  { q: "Mısır'da kurulan ve hükümdarlarının Türk kökenli olması sebebiyle 'Devletü't-Türkiyye' adıyla anılan devlet hangisidir?", options: ["Memlükler", "Tolunoğulları", "İhşidiler", "Eyyubiler"], answer: 0, diff: "Orta" },
+  { q: "Karatay Medresesi ve İnce Minareli Medrese hangi Anadolu Selçuklu başkentinde inşa edilmiştir?", options: ["Konya", "Sivas", "Kayseri", "İznik"], answer: 0, diff: "Orta" },
+  { q: "Gazneli Mahmut'un Hindistan'a yaptığı 17 seferin en ünlüsü olan ve Şiva tapınağının zenginliklerini aldığı sefer hangisidir?", options: ["Somnat Seferi", "Gucerat Seferi", "Pencap Seferi", "Delhi Seferi"], answer: 0, diff: "Zor" },
+  { q: "Büyük Selçuklu Devleti'nde ordu komutanı ve askeri işlerden sorumlu vezirlik divanı hangisidir?", options: ["Divan-ı Arz (Ceyş)", "Divan-ı Tuğra", "Divan-ı İstifa", "Divan-ı Mezalim"], answer: 0, diff: "Orta" },
+  { q: "Anadolu'da Moğol istilası sonrası kurulan Karesioğulları Beyliği'nin merkezi neresidir?", options: ["Balıkesir - Çanakkale", "Kütahya", "Manisa", "Muğla"], answer: 0, diff: "Orta" },
+  { q: "Moğol İmparatorluğu'nun parçalanmasıyla Karadeniz'in kuzeyinde kurulan ve İslamiyet'i kabul eden Türk-Moğol devleti hangisidir?", options: ["Altın Orda Devleti", "İlhanlılar", "Çağatay Hanlığı", "Timur Devleti"], answer: 0, diff: "Zor" },
 
   // --- OSMANLI SİYASİ TARİHİ (15 Soru) ---
-  { q: "Osmanlı Devleti'nin Bizans tekfurlarına karşı kazandığı ilk zafer kabul edilen savaş hangisidir?", options: ["Koyunhisar Savaşı", "Maltepe Savaşı", "Sırpsındığı Savaşı", "Çirmen Savaşı"], answer: 0 },
-  { q: "Osmanlı Devleti'nin Rumeli'deki ilk askeri üssü ve toprağı olan kale hangisidir?", options: ["Gelibolu Kalesi", "Çimpe Kalesi", "Kilitbahir Kalesi", "Seddülbahir Kalesi"], answer: 1 },
-  { q: "Yıldırım Bayezid'e 'Sultan-ı İklim-i Rum' unvanının verildiği zafer hangisidir?", options: ["I. Kosova", "Varna", "Niğbolu Savaşı", "II. Kosova"], answer: 2 },
-  { q: "1402 Ankara Savaşı sonrasında yaşanan 11 yıllık taht kavgaları dönemine ne denir?", options: ["Fetret Devri", "Lale Devri", "Tanzimat Devri", "İkinci Meşrutiyet"], answer: 0 },
-  { q: "Akdeniz'in Türk gölü haline gelmesini sağlayan Preveze Deniz Zaferi hangi kaptan-ı derya döneminde kazanılmıştır?", options: ["Piri Reis", "Barbaros Hayrettin Paşa", "Turgut Reis", "Kılıç Ali Paşa"], answer: 1 },
-  { q: "Osmanlı Devleti'nin Doğu'da en geniş sınırlara ulaştığı antlaşma hangisidir?", options: ["Kasr-ı Şirin Antlaşması", "Amasya Antlaşması", "Nasuh Paşa Antlaşması", "Ferhat Paşa Antlaşması"], answer: 3 },
-  { q: "Avusturya kralının Osmanlı sadrazamına eşit sayılma üstünlüğünü sona erdiren antlaşma hangisidir?", options: ["Zitvatorok Antlaşması", "İstanbul Antlaşması", "Vasvar Antlaşması", "Karlofça Antlaşması"], answer: 0 },
-  { q: "Osmanlı Devleti'nin Batı'da ilk kez büyük çapta toprak kaybettiği antlaşma hangisidir?", options: ["Pasarofça Antlaşması", "Belgrad Antlaşması", "Karlofça Antlaşması", "Küçük Kaynarca Antlaşması"], answer: 2 },
-  { q: "Osmanlı Devleti'nde Lale Devri'ni başlatan 1718 tarihli antlaşma hangisidir?", options: ["Pasarofça Antlaşması", "Prut Antlaşması", "Yaş Antlaşması", "Edirne Antlaşması"], answer: 0 },
-  { q: "Yunanistan'ın Osmanlı'dan ayrılarak resmen bağımsız olduğu antlaşma hangisidir?", options: ["Bükreş Antlaşması", "Edirne Antlaşması", "Hünkar İskelesi Antlaşması", "Berlin Antlaşması"], answer: 1 },
-  { q: "Osmanlı Devleti'nin ikinci kurucusu kabul edilen padişah kimdir?", options: ["Çelebi Mehmed (I. Mehmed)", "II. Murad", "Fatih Sultan Mehmet", "Yıldırım Bayezid"], answer: 0 },
-  { q: "Safevilerle yapılan ve Şah İsmail'in mağlup edildiği 1514 tarihli zafer hangisidir?", options: ["Çaldıran Savaşı", "Mercidabık", "Ridaniye", "Otlukbeli"], answer: 0 },
-  { q: "Kuzey Afrika'da fethedilen ilk toprak parçası neresidir?", options: ["Cezayir", "Trablusgarp", "Mısır", "Tunus"], answer: 2 },
-  { q: "Girit Adası kaç yıllık bir kuşatmanın ardından 1669'da fethedilmiştir?", options: ["24 Yıl", "10 Yıl", "5 Yıl", "15 Yıl"], answer: 0 },
-  { q: "Kırım'ın bağımsız hale geldiği 1774 tarihli antlaşma hangisidir?", options: ["Küçük Kaynarca", "Yaş", "Pasarofça", "Bükreş"], answer: 0 },
+  { q: "Osmanlı Devleti'nde tahtı kendi isteğiyle oğluna bırakan ve daha sonra Varna Savaşı için tekrar tahta geçen padişah kimdir?", options: ["II. Murad", "I. Murad", "Çelebi Mehmed", "II. Bayezid"], answer: 0, diff: "Orta" },
+  { q: "Fatih Sultan Mehmet'in Karadeniz'i Türk gölü yapma hedefi doğrultusunda 1461'de fethettiği Rum devleti hangisidir?", options: ["Trabzon Rum İmparatorluğu", "Mora Despotluğu", "Sinop İsfendiyaroğulları", "Kefe Kolonisi"], answer: 0, diff: "Orta" },
+  { q: "Cem Sultan Olayı sebebiyle Osmanlı Devleti'nin Batı fetihlerinin duraksadığı ve iç meselenin dış krize dönüştüğü dönem hangi padişah dönemidir?", options: ["II. Bayezid", "Yavuz Sultan Selim", "Fatih Sultan Mehmet", "Kanuni"], answer: 0, diff: "Orta" },
+  { q: "Safevi Devleti ile yapılan ve Doğu Anadolu'nun emniyetini kesinleştiren 1514 tarihli zafer hangisidir?", options: ["Çaldıran Savaşı", "Mercidabık", "Ridaniye", "Otlukbeli"], answer: 0, diff: "Orta" },
+  { q: "Kanuni Sultan Süleyman'ın bizzat başında bulunduğu son sefer hangisidir?", options: ["Zigetvar Seferi", "Mohaç Seferi", "Rodos Seferi", "Alman Seferi"], answer: 0, diff: "Orta" },
+  { q: "Osmanlı Devleti'nin Akdeniz'de fethettiği ve Doğu Akdeniz ticaret yolunu güvenceye aldığı ada 1571'de hangisi olmuştur?", options: ["Kıbrıs", "Girit", "Rodos", "Sakız"], answer: 0, diff: "Orta" },
+  { q: "1596 Haçova Meydan Muharebesi'ni kazanarak 'Eğri Fatihi' unvanını alan padişah kimdir?", options: ["III. Mehmed", "III. Murad", "I. Ahmed", "II. Osman"], answer: 0, diff: "Zor" },
+  { q: "Genç Osman'ın (II. Osman) Yeniçeri Ocağı'nı kaldırma fikrini ilk kez edindiği sefer hangisidir?", options: ["Hotin Seferi", "Revan Seferi", "Bağdat Seferi", "Uyvar Seferi"], answer: 0, diff: "Orta" },
+  { q: "Bağdat'ı Safevilerden geri alarak 'Bağdat Fatihi' unvanını kazanan 17. yüzyıl padişahı kimdir?", options: ["IV. Murad", "II. Osman", "I. Ahmed", "IV. Mehmed"], answer: 0, diff: "Orta" },
+  { q: "Osmanlı'nın Girit'i fethederek Akdeniz'de kazandığı son büyük ada fethi hangi sadrazam döneminde tamamlanmıştır?", options: ["Köprülü Fazıl Ahmed Paşa", "Köprülü Mehmed Paşa", "Merzifonlu Kara Mustafa Paşa", "Tarhuncu Ahmed Paşa"], answer: 0, diff: "Zor" },
+  { q: "Rusya'nın Osmanlı topraklarındaki Ortodoksların koruyuculuğunu ilk kez elde ettiği ağır antlaşma hangisidir?", options: ["Küçük Kaynarca Antlaşması", "Yaş Antlaşması", "Prut Antlaşması", "Bükreş Antlaşması"], answer: 0, diff: "Orta" },
+  { q: "Napolyon'un Mısır'ı işgali sırasında Akka Kalesi önünde Fransız ordusunu durduran Osmanlı komutanı kimdir?", options: ["Cezzar Ahmed Paşa", "Alemdar Mustafa Paşa", "Hüsrev Paşa", "Kavalalı Mehmed Ali Paşa"], answer: 0, diff: "Orta" },
+  { q: "Sırpların Osmanlı'ya karşı ilk isyanını başlatan lider aşağıdakilerden hangisidir?", options: ["Kara Yorgi", "Miloş Obrenoviç", "Aleksandr İpsilanti", "Tepedelenli Ali Paşa"], answer: 0, diff: "Zor" },
+  { q: "Osmanlı Devleti'nin 'Avrupalı bir devlet sayıldığı' ve toprak bütünlüğünün Avrupalı devletlerin garantisi altına alındığı antlaşma hangisidir?", options: ["1856 Paris Antlaşması", "1878 Berlin Antlaşması", "1833 Hünkar İskelesi", "1841 Londra Antlaşması"], answer: 0, diff: "Orta" },
+  { q: "93 Harbi (1877-1878) sonrasında imzalanan fakat yürürlüğe girmeyip yerine Berlin Antlaşması yapılan ölü doğmuş antlaşma hangisidir?", options: ["Ayastefanos Antlaşması", "Edirne Antlaşması", "San Stefano / Sevr", "Bükreş Antlaşması"], answer: 0, diff: "Orta" },
 
   // --- OSMANLI KÜLTÜR VE MEDENİYETİ (15 Soru) ---
-  { q: "Sadrazam sefere çıktığında başkentte yerine vekalet eden divan üyesi kimdir?", options: ["Kazasker", "Nişancı", "Sadaret Kaymakamı", "Kaptan-ı Derya"], answer: 2 },
-  { q: "Tımarlı Sipahilerin beslemek zorunda olduğu atlı askerlere ne ad verilir?", options: ["Cebelü", "Ulufe", "Humbaracı", "Lağımcı"], answer: 0 },
-  { q: "Gelirleri padişahın annesi, eşleri ve kızlarına ayrılan dirlik arazisi hangisidir?", options: ["Mukataa", "Paşmaklık", "Yurtluk", "Malikane"], answer: 1 },
-  { q: "Mimar Sinan'ın 'ustalık eserim' dediği Edirne'deki şaheser hangisidir?", options: ["Süleymaniye Camii", "Şehzade Camii", "Selimiye Camii", "Rüstem Paşa Camii"], answer: 2 },
-  { q: "Osmanlı çarşılarında satış fiyatlarının devlet tarafından sınırlandırılmasına ne denir?", options: ["Narh Sistemi", "İltizam", "Gedik", "Müsadere"], answer: 0 },
-  { q: "İbrahim Müteferrika tarafından Osmanlı matbaasında basılan ilk kitap hangisidir?", options: ["Cihannüma", "Vankulu Lügati", "Tuhfetü'l-Kibar", "Tarih-i Naima"], answer: 1 },
-  { q: "Osmanlı'da haksız kazanç sağlayan devlet görevlilerinin mallarına el koyma usulü hangisidir?", options: ["Müsadere", "Gedik", "İstimalet", "İskan"], answer: 0 },
-  { q: "Osmanlı minyatür sanatçılarına verilen unvan aşağıdakilerden hangisidir?", options: ["Hattat", "Müzehhib", "Nakkaş", "Hakkak"], answer: 2 },
-  { q: "Divan-ı Hümayun'da kadı ve müderris atamalarını yapan ilmiye sınıfı lideri kimdir?", options: ["Kazasker", "Şeyhülislam", "Nişancı", "Defterdar"], answer: 0 },
-  { q: "Yeniçerilerin sefere çıkarken okudukları ünlü dua hangisidir?", options: ["Gülbank", "Münacat", "Naat", "Mevlid"], answer: 0 },
-  { q: "Yeniçeri Ocağı'nı 1826'da kaldırarak 'Vaka-i Hayriye'yi gerçekleştiren padişah kimdir?", options: ["II. Mahmud", "III. Selim", "Abdülmecid", "II. Abdülhamid"], answer: 0 },
-  { q: "Osmanlı'da iş yeri açma ve mesleki ruhsat hakkına ne ad verilir?", options: ["Gedik", "Narh", "İltizam", "Kapan"], answer: 0 },
-  { q: "Osmanlı saray teşkilatında padişahın özel hayatının geçtiği bölüme ne denir?", options: ["Harem", "Enderun", "Birun", "Babüssaade"], answer: 0 },
-  { q: "Osmanlı'da devlet memuru ve üst düzey bürokrat yetiştiren saray mektebi hangisidir?", options: ["Enderun Mektebi", "Medrese", "Rüştiye", "Darülfünun"], answer: 0 },
-  { q: "Fethedilen gayrimüslim halka karşı hoşgörülü ve adil davranma politikasına ne ad verilir?", options: ["İstimalet", "İskan", "Müsadere", "Devşirme"], answer: 0 }
+  { q: "Osmanlı Devleti'nde taşra teşkilatında 'kaza' biriminin mülki ve adli yöneticisi kimdir?", options: ["Kadı", "Subaşı", "Sancakbeyi", "Beylerbeyi"], answer: 0, diff: "Orta" },
+  { q: "Olağanüstü hallerde, savaş zamanlarında toplanan ve doğrudan hazineye giden Osmanlı vergisi hangisidir?", options: ["Avarız", "Ağnam", "Haraç", "Cizye"], answer: 0, diff: "Orta" },
+  { q: "Osmanlı donanmasında kürek çeken forsa ve deniz piyadelerine ne ad verilirdi?", options: ["Azepler (Leventler)", "Cebelüler", "Humbaracılar", "Lağımcılar"], answer: 0, diff: "Zor" },
+  { q: "Gayrimüslim erkeklerden askerlik yapmamaları karşılığında alınan baş vergisi hangisidir?", options: ["Cizye", "Haraç", "Ağnam", "Çiftbozan"], answer: 0, diff: "Orta" },
+  { q: "Osmanlı Devleti'nde tarlasını mazeretsiz üst üste üç yıl ekmeyen köylüden alınan ceza vergisi hangisidir?", options: ["Çiftbozan", "İspenç", "Resm-i Çift", "Bennak"], answer: 0, diff: "Orta" },
+  { q: "Tımar sisteminde yıllık geliri 20.000 ile 100.000 akçe arasında olan dirlik arazisine ne ad verilir?", options: ["Zeamet", "Has", "Tımar", "Yurtluk"], answer: 0, diff: "Orta" },
+  { q: "Sadrazamın padişah adına çıkardığı yazılı buyruklara ne ad verilir?", options: ["Buyruldu", "Hatt-ı Hümayun", "Ferman", "Berat"], answer: 0, diff: "Zor" },
+  { q: "Osmanlı'da kadıların verdiği hükümleri denetleyen ve şeri mahkeme kayıtlarının tutulduğu defterlere ne denir?", options: ["Şeriye Sicilleri", "Tahrir Defterleri", "Mühimme Defterleri", "Ruznamçe"], answer: 0, diff: "Orta" },
+  { q: "Topkapı Sarayı'nda devlet işlerinin görüşüldüğü Divan-ı Hümayun toplantılarının yapıldığı mekan hangisidir?", options: ["Kubbealtı", "Babüsselam", "Arz Odası", "Revan Köşkü"], answer: 0, diff: "Orta" },
+  { q: "Hazine-i Amire'nin açıklarını kapatmak için çıkarılan Osmanlı'nın ilk kağıt parasına ne ad verilir?", options: ["Kaime-i Mutebere", "Sultani", "Akçe", "Mecidiye"], answer: 0, diff: "Orta" },
+  { q: "Osmanlı bürokrasisinde padişahın ferman ve beratlarına tuğrasını çeken kalem hangisidir?", options: ["Nişancı Kalemi (Beylikçi)", "Amedi Kalemi", "Tahvil Kalemi", "Rüus Kalemi"], answer: 0, diff: "Zor" },
+  { q: "Darüşşafaka cemiyeti ve okulu Osmanlı Devleti'nde hangi kesime eğitim vermek amacıyla açılmıştır?", options: ["Öksüz ve Yetim Müslüman Çocuklara", "Yalnızca Şehzadelere", "Gayrimüslim Tüccarlara", "Yabancı Elçilere"], answer: 0, diff: "Zor" },
+  { q: "Ahilik geleneğine dayanan Lonca Teşkilatı'nda esnafın başındaki en yetkili idareciye ne denirdi?", options: ["Şeyh (Pir)", "Yiğitbaşı", "Kethüda", "Emin"], answer: 0, diff: "Orta" },
+  { q: "Osmanlı klasik döneminde el yazması kitapların kenar süslemelerini yapan tezhip ustalarına ne ad verilirdi?", options: ["Müzehhib", "Nakkaş", "Hattat", "Mücellit"], answer: 0, diff: "Orta" },
+  { q: "Tanzimat Dönemi'nde Ahmet Cevdet Paşa başkanlığındaki heyet tarafından hazırlanan İslami medeni kanun hangisidir?", options: ["Mecelle", "Kanun-ı Esasi", "Düstur", "Kanunname-i Cedit"], answer: 0, diff: "Orta" },
+
+  // --- İNKILAP TARİHİ VE ATATÜRK DÖNEMİ (15 Soru) ---
+  { q: "I. Dünya Savaşı devam ederken Boğazlar ve Doğu Anadolu'nun Çarlık Rusyası'na bırakıldığı gizli antlaşma hangisidir?", options: ["İstanbul (Boğazlar) Antlaşması", "Londra Antlaşması", "Sykes-Picot", "Saint-Jean de Maurienne"], answer: 0, diff: "Zor" },
+  { q: "Mondros Ateşkes Antlaşması'nı Osmanlı Devleti adına imzalayan Bahriye Nazırı kimdir?", options: ["Rauf Orbay", "Ali Fethi Okyar", "Damat Ferit Paşa", "Tevfik Paşa"], answer: 0, diff: "Orta" },
+  { q: "Kilikyalılar Cemiyeti aşağıdaki bölgelerden hangisinin Fransız ve Ermeni işgaline uğramasını engellemek için kurulmuştur?", options: ["Çukurova (Adana ve Çevresi)", "Trabzon ve Doğu Karadeniz", "Trakya", "İzmir ve Ege"], answer: 0, diff: "Orta" },
+  { q: "Mustafa Kemal'in 9. Ordu Müfettişi olarak Samsun'a çıkışının ardından yayınladığı ve ilk resmi raporu olan metin hangisidir?", options: ["Samsun Raporu", "Havza Genelgesi", "Amasya Tamimi", "Erzurum Bildirisi"], answer: 0, diff: "Orta" },
+  { q: "Milli Mücadele'de Batı Cephesi'nde Kuva-yı Milliye birliklerinin düzenli ordu öncesi Yunan işgaline karşı yaptığı taarruz denemesi hangisidir?", options: ["Gediz Taarruzu", "İnönü Taarruzu", "Aslıhanlar Muharebesi", "Dumlupınar Baskını"], answer: 0, diff: "Zor" },
+  { q: "I. TBMM döneminde çıkarılan ve Meclis'e karşı çıkan isyanları bastırmayı amaçlayan ilk kanunlardan biri hangisidir?", options: ["Hıyanet-i Vataniye Kanunu", "Firariler Kanunu", "Tekalif-i Milliye", "Men-i Müskirat"], answer: 0, diff: "Orta" },
+  { q: "Kurtuluş Savaşı'nda Fransa ile TBMM arasında imzalanan ve Güney Cephesi'ni kapatan 1921 tarihli antlaşma hangisidir?", options: ["Ankara Antlaşması", "Gümrü Antlaşması", "Kars Antlaşması", "Mudanya Mütarekesi"], answer: 0, diff: "Orta" },
+  { q: "Sovyet Rusya'nın Misak-ı Milli'yi tanıdığı ve Kapitülasyonların kaldırılmasını kabul ettiği ilk antlaşma hangisidir?", options: ["Moskova Antlaşması", "Kars Antlaşması", "Gümrü Antlaşması", "Brest-Litovsk"], answer: 0, diff: "Orta" },
+  { q: "Lozan Barış Konferansı sırasında çözüme kavuşturulamayıp Türkiye ile İngiltere arasında sonraya bırakılan tek sınır meselesi hangisidir?", options: ["Musul Sorunu (Irak Sınırı)", "Hatay Sorunu", "Batı Trakya Sınırı", "Boğazlar Meselesi"], answer: 0, diff: "Orta" },
+  { q: "Atatürk döneminde çok partili hayata geçişin ikinci denemesi olarak kurulan Serbest Cumhuriyet Fırkası'nın kurucusu kimdir?", options: ["Ali Fethi Okyar", "Kazım Karabekir", "Rauf Orbay", "Refet Bele"], answer: 0, diff: "Orta" },
+  { q: "Şeyh Sait İsyanı'nın ardından hükümete olağanüstü yetkiler tanıyan ve İstiklal Mahkemeleri'ni yeniden kuran kanun hangisidir?", options: ["Takrir-i Sükun Kanunu", "Hıyanet-i Vataniye Kanunu", "Teşkilat-ı Esasiye", "Teşvik-i Sanayi"], answer: 0, diff: "Orta" },
+  { q: "1929 Dünya Ekonomik Buhranı (Büyük Buhran) sonrasında Türkiye'de zorunlu olarak benimsenen Atatürk ilkesi hangisidir?", options: ["Devletçilik", "Halkçılık", "Laiklik", "Cumhuriyetçilik"], answer: 0, diff: "Orta" },
+  { q: "Atatürk'ün 'Şahsi meselemdir' diyerek çözümüne büyük önem verdiği ve 1939'da anavatana katılan sınır bölgesi neresidir?", options: ["Hatay", "Musul", "Batum", "Kıbrıs"], answer: 0, diff: "Orta" },
+  { q: "Boğazların askersizleştirilmiş statüsünü sona erdirip Türkiye'ye tam egemenlik hakkı veren 1936 tarihli sözleşme hangisidir?", options: ["Montrö Boğazlar Sözleşmesi", "Lozan Barış Antlaşması", "Sadabat Paktı", "Balkan Antantı"], answer: 0, diff: "Orta" },
+  { q: "Mustafa Kemal Paşa'nın Nutuk adlı büyük eserinde anlattığı olaylar hangi tarih aralığını kapsamaktadır?", options: ["1919 - 1927", "1919 - 1923", "1923 - 1938", "1914 - 1927"], answer: 0, diff: "Zor" }
 ];
+
+// Seçenekleri otomatik karıştıralım ki her sorunun cevabı hep A olmasın
+questions.forEach(qObj => {
+  const correctText = qObj.options[qObj.answer];
+  // Fisher-Yates shuffle
+  for (let i = qObj.options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [qObj.options[i], qObj.options[j]] = [qObj.options[j], qObj.options[i]];
+  }
+  qObj.answer = qObj.options.indexOf(correctText);
+});
 
 let peer = null;
 let isHost = false;
@@ -196,7 +231,7 @@ function enterGame() {
   peer.on('open', (id) => {
     isHost = true;
     myPeerId = id;
-    players.push({ id: myPeerId, name: myName, score: 0, answer: null, answerTime: 0 });
+    players.push({ id: myPeerId, name: myName, score: 0, streak: 0, answer: null, answerTime: 0 });
     document.getElementById('host-actions').style.display = 'block';
     document.getElementById('wait-msg').style.display = 'none';
     renderLobby();
@@ -233,7 +268,7 @@ function joinAsClient() {
 
 function handleHostData(conn, data) {
   if (data.type === 'JOIN') {
-    players.push({ conn, id: conn.peer, name: data.name, score: 0, answer: null, answerTime: 0 });
+    players.push({ conn, id: conn.peer, name: data.name, score: 0, streak: 0, answer: null, answerTime: 0 });
     renderLobby();
     broadcast({ type: 'LOBBY_UPDATE', players: players.map(p => ({ name: p.name, score: p.score })) });
   } else if (data.type === 'SUBMIT_ANSWER') {
@@ -279,7 +314,8 @@ function nextQuestion() {
     index: currentQ,
     total: questions.length,
     q: q.q,
-    options: q.options
+    options: q.options,
+    diff: q.diff
   };
 
   broadcast(qData);
@@ -313,9 +349,32 @@ function checkAllAnswered() {
 function evaluateRound() {
   const correctIdx = questions[currentQ].answer;
 
+  // En yüksek puanı tespit et (Comeback mekanizması için)
+  const currentLeaderScore = Math.max(...players.map(p => p.score), 0);
+
   players.forEach(p => {
     if (p.answer === correctIdx) {
-      p.score += (500 + (p.answerTime * 25));
+      p.streak += 1;
+      
+      // Taban Puan: 300 + Kalan Süre x 20 (Hız)
+      let gained = 300 + (p.answerTime * 20);
+
+      // Streak Bonusu (+50, +100 maks)
+      if (p.streak >= 3) gained += 100;
+      else if (p.streak === 2) gained += 50;
+
+      // COMEBACK MEKANİZMASI:
+      // Liderden 800 puandan fazla gerideyse doğru bildiğinde %30 ekstra puan kazanır!
+      const deficit = currentLeaderScore - p.score;
+      if (deficit >= 1500) {
+        gained = Math.round(gained * 1.4); // %40 comeback bonusu
+      } else if (deficit >= 800) {
+        gained = Math.round(gained * 1.25); // %25 comeback bonusu
+      }
+
+      p.score += gained;
+    } else {
+      p.streak = 0; // Yanlışta seri sıfırlanır
     }
   });
 
@@ -324,7 +383,7 @@ function evaluateRound() {
   const resultData = {
     type: 'ROUND_OVER',
     correctAnswer: questions[currentQ].options[correctIdx],
-    leaderboard: players.map(p => ({ name: p.name, score: p.score })),
+    leaderboard: players.map(p => ({ name: p.name, score: p.score, streak: p.streak })),
     isLast: currentQ + 1 >= questions.length
   };
 
@@ -358,6 +417,12 @@ function handleClientData(data) {
     document.getElementById('quiz-card').style.display = 'block';
 
     document.getElementById('q-counter').innerText = `Soru ${data.index + 1}/${data.total}`;
+    
+    // Zorluk rozeti
+    const diffBadge = document.getElementById('q-diff');
+    diffBadge.innerText = data.diff;
+    diffBadge.className = `diff-badge diff-${data.diff.toLowerCase()}`;
+
     document.getElementById('question-text').innerText = data.q;
     document.getElementById('status-footer').innerText = "Cevabınızı seçin...";
     document.getElementById('timer-bar').style.width = '100%';
@@ -382,14 +447,14 @@ function handleClientData(data) {
     const lb = document.getElementById('leaderboard');
     lb.innerHTML = data.leaderboard.map((p, i) => `
       <div class="leaderboard-row">
-        <span>#${i + 1} ${p.name}</span>
+        <span>#${i + 1} ${p.name} ${p.streak >= 2 ? '🔥' + p.streak : ''}</span>
         <span style="color:#38bdf8;">${p.score} Puan</span>
       </div>
     `).join('');
   } else if (data.type === 'GAME_OVER') {
     document.getElementById('quiz-card').style.display = 'none';
     document.getElementById('round-card').style.display = 'block';
-    document.getElementById('round-result-title').innerText = "🏆 85 Soru Tamamlandı! 🏆";
+    document.getElementById('round-result-title').innerText = "🏆 100 Soru Tamamlandı! 🏆";
     document.getElementById('round-correct-ans').innerText = "Yarışma sona erdi.";
   }
 }
@@ -413,5 +478,3 @@ function submitAnswer(idx, btnElem) {
 </script>
 </body>
 </html>
-
-```
