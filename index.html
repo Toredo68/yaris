@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>AGS Osmanlı Tarihi Bilgi Yarışması</title>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0b1329; color: #f8fafc; padding: 20px; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: #1e293b; border-radius: 16px; padding: 28px; width: 100%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    h2, h3 { margin-top: 0; color: #38bdf8; text-align: center; }
+    input { width: 100%; padding: 14px; background: #0f172a; border: 2px solid #334155; color: #fff; border-radius: 10px; font-size: 16px; margin-bottom: 16px; outline: none; }
+    input:focus { border-color: #38bdf8; }
+    .btn { background: #2563eb; color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
+    .btn:hover { background: #1d4ed8; }
+    .timer-container { width: 100%; background: #334155; border-radius: 8px; height: 12px; margin: 15px 0; overflow: hidden; }
+    .timer-bar { height: 100%; width: 100%; background: #38bdf8; transition: width 1s linear; }
+    .option-btn { width: 100%; text-align: left; background: #334155; color: #f8fafc; border: 2px solid #475569; padding: 14px; border-radius: 10px; margin: 10px 0; font-size: 15px; cursor: pointer; transition: 0.2s; }
+    .option-btn:hover:not(:disabled) { background: #475569; border-color: #94a3b8; }
+    .option-btn.selected { border-color: #38bdf8; background: #1e3a8a; }
+    .badge { background: #0f172a; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #94a3b8; border: 1px solid #334155; }
+    .player-chip { background: #0f172a; border: 1px solid #334155; padding: 8px 14px; border-radius: 20px; margin: 4px; display: inline-block; font-size: 14px; }
+    .leaderboard-row { display: flex; justify-content: space-between; padding: 12px; background: #0f172a; border-radius: 8px; margin-bottom: 8px; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <!-- GİRİŞ EKRANI -->
+  <div id="login-card" class="card">
+    <h2>AGS Osmanlı Tarihi</h2>
+    <p style="text-align: center; color: #94a3b8; font-size: 14px;">20 Soru - Hızlı Olan Kazanır!</p>
+    <input type="text" id="my-name" placeholder="Yarışmacı Adınızı Yazın..." maxlength="15">
+    <button class="btn" onclick="enterGame()">Lobiye Katıl</button>
+  </div>
+
+  <!-- BEKLEME LOBİSİ -->
+  <div id="lobby-card" class="card" style="display: none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+      <h3 style="margin:0;">Yarışma Odası</h3>
+      <span class="badge" id="player-count">0 Oyuncu</span>
+    </div>
+    <p style="color: #94a3b8; font-size: 14px;">Katılan oyuncular:</p>
+    <div id="lobby-players" style="min-height: 80px; margin-bottom: 20px;"></div>
+    
+    <div id="host-actions" style="display: none;">
+      <button class="btn" style="background:#10b981;" onclick="startQuiz()">Yarışmayı Başlat</button>
+    </div>
+    <p id="wait-msg" style="text-align:center; color:#94a3b8; font-size: 14px;">İlk giren oyuncunun oyunu başlatması bekleniyor...</p>
+  </div>
+
+  <!-- SORU EKRANI -->
+  <div id="quiz-card" class="card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span class="badge" id="q-counter">Soru 1/20</span>
+      <span class="badge" id="time-text" style="color: #f59e0b;">20s</span>
+    </div>
+
+    <div class="timer-container">
+      <div id="timer-bar" class="timer-bar"></div>
+    </div>
+
+    <h3 id="question-text" style="text-align: left; font-size: 17px; min-height: 48px; color: #f8fafc; line-height: 1.5;"></h3>
+    <div id="options-container"></div>
+    
+    <div id="status-footer" style="text-align: center; margin-top: 15px; font-size: 14px; color: #94a3b8; min-height: 22px;"></div>
+  </div>
+
+  <!-- 2 SANİYELİK SKOR / SONUÇ EKRANI -->
+  <div id="round-card" class="card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h3 id="round-result-title" style="margin:0;">Tur Bitti</h3>
+      <span class="badge" style="color: #38bdf8;">Sonraki soruya geçiliyor...</span>
+    </div>
+    <p id="round-correct-ans" style="text-align:center; color:#4ade80; font-weight:600; font-size: 17px; margin: 15px 0;"></p>
+    <div id="leaderboard" style="margin: 15px 0;"></div>
+  </div>
+
+<script>
+const ROOM_NAME = "ags-tarih-lobisi-2026-v2";
+
+// AGS Müfredatına Uygun 20 Osmanlı Tarihi Sorusu
+const questions = [
+  { q: "Osmanlı Devleti'nde ilk düzenli ordu olan 'Yaya ve Müsellem' teşkilatı hangi padişah döneminde kurulmuştur?", options: ["Osman Bey", "Orhan Bey", "I. Murad", "Yıldırım Bayezid"], answer: 1 },
+  { q: "Balkanlar'ın kesin Türk yurdu olduğunu tescilleyen ve II. Murad'ın Haçlı ittifakını yendiği savaş hangisidir?", options: ["I. Kosova", "Varna", "II. Kosova", "Sırpsındığı"], answer: 2 },
+  { q: "Fatih Sultan Mehmet döneminde hazırlanan ve kardeş katli yasasını da içeren ilk yazılı kanunname hangisidir?", options: ["Kanunname-i Âl-i Osman", "Kanun-ı Esasi", "Adaletname", "Gülhane Hatt-ı Hümayunu"], answer: 0 },
+  { q: "Divan-ı Hümayun'da ferman ve beratlara padişahın tuğrasını çeken ve fethedilen toprakları tahrir defterine kaydeden görevli kimdir?", options: ["Kazasker", "Nişancı", "Reisülküttab", "Defterdar"], answer: 1 },
+  { q: "Yavuz Sultan Selim'in Memlükleri mağlup ederek Suriye ve Filistin topraklarını Osmanlı'ya kattığı savaş hangisidir?", options: ["Çaldıran", "Mercidabık", "Ridaniye", "Otlukbeli"], answer: 1 },
+  { q: "Osmanlı'da gelirleri doğrudan devlet hazinesine aktarılan ve iltizam yöntemiyle kiralanan toprak türü hangisidir?", options: ["Mukataa", "Paşmaklık", "Yurtluk", "Vakıf"], answer: 0 },
+  { q: "Osmanlı Devleti ile Safeviler (İran) arasında imzalanan ve bugünkü Türkiye-İran sınırını büyük ölçüde çizen antlaşma hangisidir?", options: ["Ferhat Paşa Antlaşması", "Nasuh Paşa Antlaşması", "Kasr-ı Şirin Antlaşması", "Amasya Antlaşması"], answer: 2 },
+  { q: "Avusturya arşidükünün protokolde Osmanlı sadrazamına denk sayıldığı 1533 tarihli antlaşma hangisidir?", options: ["Zitvatorok Antlaşması", "İstanbul (İbrahim Paşa) Antlaşması", "Vasvar Antlaşması", "Karlofça Antlaşması"], answer: 1 },
+  { q: "Osmanlı Devleti'nin Batı'da en geniş sınırlara ulaştığı Bucaş Antlaşması hangi devletle imzalanmıştır?", options: ["Lehistan", "Rusya", "Avusturya", "Venedik"], answer: 0 },
+  { q: "Osmanlı Devleti'nde padişah çocuklarının doğumu ve düğün şenliklerini anlatan edebi eserlere ne ad verilir?", options: ["Gazavatname", "Surname", "Sefaretname", "Seyahatname"], answer: 1 },
+  { q: "Kapıkulu Askerlerinin üç ayda bir aldıkları maaşa verilen ad hangisidir?", options: ["Ulufe", "Cülus", "Dirlik", "İltizam"], answer: 0 },
+  { q: "Kırım'ın bağımsız hale gelmesine yol açan ve Osmanlı'nın ilk kez savaş tazminatı ödediği antlaşma hangisidir?", options: ["Yaş Antlaşması", "Küçük Kaynarca Antlaşması", "Pasarofça Antlaşması", "Belgrad Antlaşması"], answer: 1 },
+  { q: "Lale Devri'nde Paris'e elçi olarak gönderilen ve yazdığı 'Sefaretname' ile Batı kurumlarını tanıtan Osmanlı devlet adamı kimdir?", options: ["Yirmisekiz Mehmed Çelebi", "Katip Çelebi", "Evliya Çelebi", "Ahmet Cevdet Paşa"], answer: 0 },
+  { q: "Osmanlı Devleti'nde veraset sisteminde 'Ekber ve Erşed' (en yaşlı ve olgun şehzadenin tahta geçmesi) kuralını getiren padişah kimdir?", options: ["I. Ahmed", "II. Osman", "IV. Murad", "III. Mehmed"], answer: 0 },
+  { q: "Divan toplantılarında şeri davalara bakan, kadı ve müderrislerin atamasını yapan ilmiye sınıfı temsilcisi kimdir?", options: ["Şeyhülislam", "Kazasker", "Subaşı", "Muhtesip"], answer: 1 },
+  { q: "Osmanlı Devleti'nde çarşı, pazar ve esnaf denetimini yapan belediye görevlisi hangisidir?", options: ["Kapan Emini", "Muhtesip", "Beylerbeyi", "Mültezim"], answer: 1 },
+  { q: "Mora İsyanı sırasında Osmanlı ve Mısır donanmasının Avrupalı devletlerce yakıldığı 1827 tarihli olay hangisidir?", options: ["Çeşme Baskını", "Sinop Baskını", "Navarin Olayı", "İnebahtı Bozgunu"], answer: 2 },
+  { q: "Padişahın yetkilerini kendi rızasıyla ilk kez sınırlandırdığı 1808 tarihli belge hangisidir?", options: ["Tanzimat Fermanı", "Islahat Fermanı", "Sened-i İttifak", "Kanun-ı Esasi"], answer: 2 },
+  { q: "Osmanlı Devleti'nde ilk özel gazete olan Tercüman-ı Ahval'i Şinasi ile birlikte çıkaran gazeteci kimdir?", options: ["Agah Efendi", "Namık Kemal", "Ziya Paşa", "Ali Suavi"], answer: 0 },
+  { q: "Osmanlı Devleti'nin 'Boğazlar üzerindeki tek başına egemenlik hakkını' son kez kullandığı antlaşma hangisidir?", options: ["Hünkar İskelesi Antlaşması", "Londra Boğazlar Sözleşmesi", "Balta Limanı Antlaşması", "Bükreş Antlaşması"], answer: 0 }
+];
+
+let peer = null;
+let isHost = false;
+let myName = "";
+let myPeerId = "";
+let hostConn = null;
+
+let players = [];
+let currentQ = -1;
+let timer = null;
+let timeLeft = 20;
+
+function enterGame() {
+  myName = document.getElementById('my-name').value.trim();
+  if (!myName) return alert("Lütfen adınızı girin!");
+
+  document.getElementById('login-card').style.display = 'none';
+  document.getElementById('lobby-card').style.display = 'block';
+
+  peer = new Peer(ROOM_NAME);
+
+  peer.on('open', (id) => {
+    isHost = true;
+    myPeerId = id;
+    players.push({ id: myPeerId, name: myName, score: 0, answer: null, answerTime: 0 });
+    document.getElementById('host-actions').style.display = 'block';
+    document.getElementById('wait-msg').style.display = 'none';
+    renderLobby();
+
+    peer.on('connection', (conn) => {
+      conn.on('data', (data) => handleHostData(conn, data));
+      conn.on('close', () => {
+        players = players.filter(p => p.id !== conn.peer);
+        renderLobby();
+        broadcast({ type: 'LOBBY_UPDATE', players: players.map(p => ({ name: p.name, score: p.score })) });
+      });
+    });
+  });
+
+  peer.on('error', (err) => {
+    if (err.type === 'unavailable-id') {
+      isHost = false;
+      joinAsClient();
+    }
+  });
+}
+
+function joinAsClient() {
+  peer = new Peer();
+  peer.on('open', (id) => {
+    myPeerId = id;
+    hostConn = peer.connect(ROOM_NAME);
+    hostConn.on('open', () => {
+      hostConn.send({ type: 'JOIN', name: myName });
+    });
+    hostConn.on('data', (data) => handleClientData(data));
+  });
+}
+
+// Host Olayları
+function handleHostData(conn, data) {
+  if (data.type === 'JOIN') {
+    players.push({ conn, id: conn.peer, name: data.name, score: 0, answer: null, answerTime: 0 });
+    renderLobby();
+    broadcast({ type: 'LOBBY_UPDATE', players: players.map(p => ({ name: p.name, score: p.score })) });
+  } else if (data.type === 'SUBMIT_ANSWER') {
+    const p = players.find(x => x.id === conn.peer);
+    if (p && p.answer === null) {
+      p.answer = data.choice;
+      p.answerTime = data.timeRemaining;
+      checkAllAnswered();
+    }
+  }
+}
+
+function broadcast(msg) {
+  players.forEach(p => {
+    if (p.conn && p.conn.open) p.conn.send(msg);
+  });
+}
+
+function renderLobby() {
+  document.getElementById('player-count').innerText = `${players.length} Oyuncu`;
+  document.getElementById('lobby-players').innerHTML = players.map(p => `<span class="player-chip">👤 ${p.name}</span>`).join('');
+}
+
+function startQuiz() {
+  currentQ = -1;
+  broadcast({ type: 'START' });
+  nextQuestion();
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= questions.length) {
+    broadcast({ type: 'GAME_OVER' });
+    handleClientData({ type: 'GAME_OVER' });
+    return;
+  }
+
+  players.forEach(p => { p.answer = null; p.answerTime = 0; });
+
+  const q = questions[currentQ];
+  const qData = {
+    type: 'QUESTION',
+    index: currentQ,
+    total: questions.length,
+    q: q.q,
+    options: q.options
+  };
+
+  broadcast(qData);
+  handleClientData(qData);
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timer);
+  timeLeft = 20;
+  timer = setInterval(() => {
+    timeLeft--;
+    broadcast({ type: 'TICK', timeLeft });
+    handleClientData({ type: 'TICK', timeLeft });
+
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      evaluateRound();
+    }
+  }, 1000);
+}
+
+function checkAllAnswered() {
+  const allDone = players.every(p => p.answer !== null);
+  if (allDone) {
+    clearInterval(timer);
+    evaluateRound();
+  }
+}
+
+function evaluateRound() {
+  const correctIdx = questions[currentQ].answer;
+
+  // Taban 500 puan + her kalan saniye için 25 puan (hız ödülü)
+  players.forEach(p => {
+    if (p.answer === correctIdx) {
+      p.score += (500 + (p.answerTime * 25));
+    }
+  });
+
+  players.sort((a, b) => b.score - a.score);
+
+  const resultData = {
+    type: 'ROUND_OVER',
+    correctAnswer: questions[currentQ].options[correctIdx],
+    leaderboard: players.map(p => ({ name: p.name, score: p.score })),
+    isLast: currentQ + 1 >= questions.length
+  };
+
+  broadcast(resultData);
+  handleClientData(resultData);
+
+  // 2 saniye sonra otomatik bir sonraki soruya geç
+  if (!resultData.isLast) {
+    setTimeout(() => {
+      nextQuestion();
+    }, 2000);
+  } else {
+    setTimeout(() => {
+      broadcast({ type: 'GAME_OVER' });
+      handleClientData({ type: 'GAME_OVER' });
+    }, 2000);
+  }
+}
+
+// Client Arayüzü
+let selectedChoice = null;
+
+function handleClientData(data) {
+  if (data.type === 'LOBBY_UPDATE') {
+    document.getElementById('player-count').innerText = `${data.players.length} Oyuncu`;
+    document.getElementById('lobby-players').innerHTML = data.players.map(p => `<span class="player-chip">👤 ${p.name}</span>`).join('');
+  } else if (data.type === 'START') {
+    document.getElementById('lobby-card').style.display = 'none';
+  } else if (data.type === 'QUESTION') {
+    selectedChoice = null;
+    document.getElementById('lobby-card').style.display = 'none';
+    document.getElementById('round-card').style.display = 'none';
+    document.getElementById('quiz-card').style.display = 'block';
+
+    document.getElementById('q-counter').innerText = `Soru ${data.index + 1}/${data.total}`;
+    document.getElementById('question-text').innerText = data.q;
+    document.getElementById('status-footer').innerText = "Cevabınızı seçin...";
+    document.getElementById('timer-bar').style.width = '100%';
+
+    const optBox = document.getElementById('options-container');
+    optBox.innerHTML = '';
+    data.options.forEach((opt, idx) => {
+      const b = document.createElement('button');
+      b.className = 'option-btn';
+      b.innerText = `${String.fromCharCode(65 + idx)}) ${opt}`;
+      b.onclick = () => submitAnswer(idx, b);
+      optBox.appendChild(b);
+    });
+  } else if (data.type === 'TICK') {
+    document.getElementById('time-text').innerText = `${data.timeLeft}s`;
+    document.getElementById('timer-bar').style.width = `${(data.timeLeft / 20) * 100}%`;
+  } else if (data.type === 'ROUND_OVER') {
+    document.getElementById('quiz-card').style.display = 'none';
+    document.getElementById('round-card').style.display = 'block';
+
+    document.getElementById('round-correct-ans').innerText = `Doğru Cevap: ${data.correctAnswer}`;
+    const lb = document.getElementById('leaderboard');
+    lb.innerHTML = data.leaderboard.map((p, i) => `
+      <div class="leaderboard-row">
+        <span>#${i + 1} ${p.name}</span>
+        <span style="color:#38bdf8;">${p.score} Puan</span>
+      </div>
+    `).join('');
+  } else if (data.type === 'GAME_OVER') {
+    document.getElementById('quiz-card').style.display = 'none';
+    document.getElementById('round-card').style.display = 'block';
+    document.getElementById('round-result-title').innerText = "🏆 Yarışma Sona Erdi! 🏆";
+    document.getElementById('round-correct-ans').innerText = "Tüm sorular tamamlandı.";
+  }
+}
+
+function submitAnswer(idx, btnElem) {
+  if (selectedChoice !== null) return;
+  selectedChoice = idx;
+
+  btnElem.classList.add('selected');
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  document.getElementById('status-footer').innerText = "Cevabınız kaydedildi! Diğerleri bekleniyor...";
+
+  const payload = { type: 'SUBMIT_ANSWER', choice: idx, timeRemaining: timeLeft };
+  if (isHost) {
+    const me = players.find(p => p.id === myPeerId);
+    if (me) { me.answer = idx; me.answerTime = timeLeft; checkAllAnswered(); }
+  } else if (hostConn) {
+    hostConn.send(payload);
+  }
+}
+</script>
+</body>
+</html>
