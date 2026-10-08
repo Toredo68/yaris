@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>AGS Osmanlı Tarihi Bilgi Yarışması</title>
+  <title>AGS Genel Tarih Bilgi Yarışması</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -27,8 +27,8 @@
 
   <!-- GİRİŞ EKRANI -->
   <div id="login-card" class="card">
-    <h2>AGS Osmanlı Tarihi</h2>
-    <p style="text-align: center; color: #94a3b8; font-size: 14px;">20 Soru - Hızlı Olan Kazanır!</p>
+    <h2>AGS Genel Tarih Yarışması</h2>
+    <p style="text-align: center; color: #94a3b8; font-size: 14px;">30 Soru Karma Tarih - 20 Saniye</p>
     <input type="text" id="my-name" placeholder="Yarışmacı Adınızı Yazın..." maxlength="15">
     <button class="btn" onclick="enterGame()">Lobiye Katıl</button>
   </div>
@@ -45,13 +45,13 @@
     <div id="host-actions" style="display: none;">
       <button class="btn" style="background:#10b981;" onclick="startQuiz()">Yarışmayı Başlat</button>
     </div>
-    <p id="wait-msg" style="text-align:center; color:#94a3b8; font-size: 14px;">İlk giren oyuncunun oyunu başlatması bekleniyor...</p>
+    <p id="wait-msg" style="text-align:center; color:#94a3b8; font-size: 14px;">İlk katılan yarışmacının oyunu başlatması bekleniyor...</p>
   </div>
 
   <!-- SORU EKRANI -->
   <div id="quiz-card" class="card" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-      <span class="badge" id="q-counter">Soru 1/20</span>
+      <span class="badge" id="q-counter">Soru 1/30</span>
       <span class="badge" id="time-text" style="color: #f59e0b;">20s</span>
     </div>
 
@@ -65,7 +65,7 @@
     <div id="status-footer" style="text-align: center; margin-top: 15px; font-size: 14px; color: #94a3b8; min-height: 22px;"></div>
   </div>
 
-  <!-- 2 SANİYELİK SKOR / SONUÇ EKRANI -->
+  <!-- 2 SANİYELİK SKOR EKRANI -->
   <div id="round-card" class="card" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <h3 id="round-result-title" style="margin:0;">Tur Bitti</h3>
@@ -76,30 +76,40 @@
   </div>
 
 <script>
-const ROOM_NAME = "ags-tarih-lobisi-2026-v2";
+const ROOM_NAME = "ags-genel-tarih-30-v1";
 
-// AGS Müfredatına Uygun 20 Osmanlı Tarihi Sorusu
+// AGS Müfredatına Uygun 30 Soru (Tüm Dönemler Karışık)
 const questions = [
-  { q: "Osmanlı Devleti'nde ilk düzenli ordu olan 'Yaya ve Müsellem' teşkilatı hangi padişah döneminde kurulmuştur?", options: ["Osman Bey", "Orhan Bey", "I. Murad", "Yıldırım Bayezid"], answer: 1 },
-  { q: "Balkanlar'ın kesin Türk yurdu olduğunu tescilleyen ve II. Murad'ın Haçlı ittifakını yendiği savaş hangisidir?", options: ["I. Kosova", "Varna", "II. Kosova", "Sırpsındığı"], answer: 2 },
-  { q: "Fatih Sultan Mehmet döneminde hazırlanan ve kardeş katli yasasını da içeren ilk yazılı kanunname hangisidir?", options: ["Kanunname-i Âl-i Osman", "Kanun-ı Esasi", "Adaletname", "Gülhane Hatt-ı Hümayunu"], answer: 0 },
-  { q: "Divan-ı Hümayun'da ferman ve beratlara padişahın tuğrasını çeken ve fethedilen toprakları tahrir defterine kaydeden görevli kimdir?", options: ["Kazasker", "Nişancı", "Reisülküttab", "Defterdar"], answer: 1 },
-  { q: "Yavuz Sultan Selim'in Memlükleri mağlup ederek Suriye ve Filistin topraklarını Osmanlı'ya kattığı savaş hangisidir?", options: ["Çaldıran", "Mercidabık", "Ridaniye", "Otlukbeli"], answer: 1 },
-  { q: "Osmanlı'da gelirleri doğrudan devlet hazinesine aktarılan ve iltizam yöntemiyle kiralanan toprak türü hangisidir?", options: ["Mukataa", "Paşmaklık", "Yurtluk", "Vakıf"], answer: 0 },
-  { q: "Osmanlı Devleti ile Safeviler (İran) arasında imzalanan ve bugünkü Türkiye-İran sınırını büyük ölçüde çizen antlaşma hangisidir?", options: ["Ferhat Paşa Antlaşması", "Nasuh Paşa Antlaşması", "Kasr-ı Şirin Antlaşması", "Amasya Antlaşması"], answer: 2 },
-  { q: "Avusturya arşidükünün protokolde Osmanlı sadrazamına denk sayıldığı 1533 tarihli antlaşma hangisidir?", options: ["Zitvatorok Antlaşması", "İstanbul (İbrahim Paşa) Antlaşması", "Vasvar Antlaşması", "Karlofça Antlaşması"], answer: 1 },
-  { q: "Osmanlı Devleti'nin Batı'da en geniş sınırlara ulaştığı Bucaş Antlaşması hangi devletle imzalanmıştır?", options: ["Lehistan", "Rusya", "Avusturya", "Venedik"], answer: 0 },
-  { q: "Osmanlı Devleti'nde padişah çocuklarının doğumu ve düğün şenliklerini anlatan edebi eserlere ne ad verilir?", options: ["Gazavatname", "Surname", "Sefaretname", "Seyahatname"], answer: 1 },
-  { q: "Kapıkulu Askerlerinin üç ayda bir aldıkları maaşa verilen ad hangisidir?", options: ["Ulufe", "Cülus", "Dirlik", "İltizam"], answer: 0 },
-  { q: "Kırım'ın bağımsız hale gelmesine yol açan ve Osmanlı'nın ilk kez savaş tazminatı ödediği antlaşma hangisidir?", options: ["Yaş Antlaşması", "Küçük Kaynarca Antlaşması", "Pasarofça Antlaşması", "Belgrad Antlaşması"], answer: 1 },
-  { q: "Lale Devri'nde Paris'e elçi olarak gönderilen ve yazdığı 'Sefaretname' ile Batı kurumlarını tanıtan Osmanlı devlet adamı kimdir?", options: ["Yirmisekiz Mehmed Çelebi", "Katip Çelebi", "Evliya Çelebi", "Ahmet Cevdet Paşa"], answer: 0 },
-  { q: "Osmanlı Devleti'nde veraset sisteminde 'Ekber ve Erşed' (en yaşlı ve olgun şehzadenin tahta geçmesi) kuralını getiren padişah kimdir?", options: ["I. Ahmed", "II. Osman", "IV. Murad", "III. Mehmed"], answer: 0 },
-  { q: "Divan toplantılarında şeri davalara bakan, kadı ve müderrislerin atamasını yapan ilmiye sınıfı temsilcisi kimdir?", options: ["Şeyhülislam", "Kazasker", "Subaşı", "Muhtesip"], answer: 1 },
-  { q: "Osmanlı Devleti'nde çarşı, pazar ve esnaf denetimini yapan belediye görevlisi hangisidir?", options: ["Kapan Emini", "Muhtesip", "Beylerbeyi", "Mültezim"], answer: 1 },
-  { q: "Mora İsyanı sırasında Osmanlı ve Mısır donanmasının Avrupalı devletlerce yakıldığı 1827 tarihli olay hangisidir?", options: ["Çeşme Baskını", "Sinop Baskını", "Navarin Olayı", "İnebahtı Bozgunu"], answer: 2 },
-  { q: "Padişahın yetkilerini kendi rızasıyla ilk kez sınırlandırdığı 1808 tarihli belge hangisidir?", options: ["Tanzimat Fermanı", "Islahat Fermanı", "Sened-i İttifak", "Kanun-ı Esasi"], answer: 2 },
-  { q: "Osmanlı Devleti'nde ilk özel gazete olan Tercüman-ı Ahval'i Şinasi ile birlikte çıkaran gazeteci kimdir?", options: ["Agah Efendi", "Namık Kemal", "Ziya Paşa", "Ali Suavi"], answer: 0 },
-  { q: "Osmanlı Devleti'nin 'Boğazlar üzerindeki tek başına egemenlik hakkını' son kez kullandığı antlaşma hangisidir?", options: ["Hünkar İskelesi Antlaşması", "Londra Boğazlar Sözleşmesi", "Balta Limanı Antlaşması", "Bükreş Antlaşması"], answer: 0 }
+  { q: "Türk adının anlamını Kaşgarlı Mahmut Divanü Lugati't-Türk adlı eserinde nasıl tanımlamıştır?", options: ["Türeyen / Çoğalan", "Olgunluk Çağı", "Güçlü / Kuvvetli", "Miğfer"], answer: 1 },
+  { q: "İslamiyet öncesi Türk devletlerinde ordunun başında sefere çıkan hükümdara ne unvan verilirdi?", options: ["Tarkan", "Tudun", "Başbuğ", "Ayukı"], answer: 2 },
+  { q: "Talas Savaşı'ndan (751) sonra İslamiyet'i topluca kabul eden ilk Türk boyu hangisidir?", options: ["Karluklar", "Yağmalar", "Oğuzlar", "Kıpçaklar"], answer: 0 },
+  { q: "Büyük Selçuklu Devleti'nde vezirlik yapmış, 'Siyasetname' adlı eseri kaleme almış ünlü devlet adamı kimdir?", options: ["Nizamülmülk", "Yusuf Has Hacip", "Gazneli Mahmut", "Ömer Hayyam"], answer: 0 },
+  { q: "Anadolu Türk siyasi birliğini kurma yolunda Osmanlı topraklarına katılan ilk beylik hangisidir?", options: ["Karesioğulları", "Germiyanoğulları", "Aydınoğulları", "Candaroğulları"], answer: 0 },
+  { q: "Osmanlı Devleti'nde ilk altın para (Sultani) hangi padişah döneminde bastırılmıştır?", options: ["Fatih Sultan Mehmet", "I. Murad", "Kanuni Sultan Süleyman", "Yavuz Sultan Selim"], answer: 0 },
+  { q: "Kuzey Afrika'da Osmanlı egemenliğinin kesinleştiği ve Haçlı-Portekiz güçlerinin yenildiği savaş hangisidir?", options: ["Vadi'üs-Seyl Savaşı", "Cerbe Deniz Savaşı", "Preveze Deniz Savaşı", "Çaldıran Savaşı"], answer: 0 },
+  { q: "Osmanlı Devleti'nde ilk kez bütçe açığını tespit edip denk bütçe hazırlayan sadrazam kimdir?", options: ["Tarhuncu Ahmed Paşa", "Köprülü Mehmed Paşa", "Sokullu Mehmed Paşa", "Merzifonlu Kara Mustafa Paşa"], answer: 0 },
+  { q: "Kırım'ın Rusya'ya ait olduğunu Osmanlı Devleti'nin resmen kabul ettiği 1792 tarihli antlaşma hangisidir?", options: ["Yaş Antlaşması", "Küçük Kaynarca Antlaşması", "Aynalıkavak Tenkihnamesi", "Bükreş Antlaşması"], answer: 0 },
+  { q: "Osmanlı Devleti'nde 'hukukun üstünlüğü' ilkesinin ilk kez kabul edildiği 1839 tarihli gelişme hangisidir?", options: ["Tanzimat Fermanı", "Islahat Fermanı", "Sened-i İttifak", "I. Meşrutiyet"], answer: 0 },
+  { q: "Mustafa Kemal'in 'Ben size taarruzu emretmiyorum, ölmeyi emrediyorum' sözünü söylediği cephe hangisidir?", options: ["Çanakkale Cephesi", "Kafkas Cephesi", "Kanal Cephesi", "Suriye-Filistin Cephesi"], answer: 0 },
+  { q: "Milli Mücadele'nin gerekçesi, amacı ve yönteminin ilk kez belirtildiği tarihi belge hangisidir?", options: ["Amasya Genelgesi", "Havza Genelgesi", "Erzurum Kongresi", "Misak-ı Milli"], answer: 0 },
+  { q: "Manda ve himaye fikrinin 'ilk kez' reddedildiği kongre aşağıdakilerden hangisidir?", options: ["Erzurum Kongresi", "Sivas Kongresi", "Balıkesir Kongresi", "Alaşehir Kongresi"], answer: 0 },
+  { q: "TBMM'nin uluslararası alanda imzaladığı ilk askeri ve siyasi antlaşma hangisidir?", options: ["Gümrü Antlaşması", "Moskova Antlaşması", "Ankara Antlaşması", "Kars Antlaşması"], answer: 0 },
+  { q: "Kurtuluş Savaşı sırasında Mustafa Kemal Paşa'ya 'Başkomutanlık' yetkisi hangi savaştan sonra verilmiştir?", options: ["Eskişehir-Kütahya Muharebeleri", "I. İnönü Savaşı", "II. İnönü Savaşı", "Sakarya Meydan Muharebesi"], answer: 0 },
+  { q: "Mustafa Kemal Atatürk'e TBMM tarafından 'Mareşallik' rütbesi ve 'Gazilik' unvanı hangi zaferin ardından tevcih edilmiştir?", options: ["Sakarya Meydan Muharebesi", "Büyük Taarruz", "I. İnönü Savaşı", "Başkomutanlık Meydan Muharebesi"], answer: 0 },
+  { q: "Lozan Barış Konferansı'na TBMM adına başdelege olarak katılan devlet adamı kimdir?", options: ["İsmet İnönü", "Rauf Orbay", "Ali Fethi Okyar", "Bekir Sami Bey"], answer: 0 },
+  { q: "Saltanatın kaldırılması ile halifeliğin kaldırılması hangi yıllarda gerçekleşmiştir?", options: ["1922 - 1924", "1923 - 1924", "1920 - 1923", "1921 - 1924"], answer: 0 },
+  { q: "Türkiye Cumhuriyeti'nde eğitim ve öğretimin birleştirilmesini sağlayan yasa hangisidir?", options: ["Tevhid-i Tedrisat Kanunu", "Medeni Kanun", "Tekalif-i Milliye", "Teşkilat-ı Esasiye"], answer: 0 },
+  { q: "Türkiye'nin ilk muhalefet partisi olan Terakkiperver Cumhuriyet Fırkası'nın ilk genel başkanı kimdir?", options: ["Kazım Karabekir", "Ali Fethi Okyar", "Rauf Orbay", "Refet Bele"], answer: 0 },
+  { q: "Cumhuriyet rejimine ve laik düzene karşı çıkan ilk geniş çaplı isyan hareketi hangisidir?", options: ["Şeyh Sait İsyanı", "Menemen Olayı", "Bozkır İsyanı", "Ahmet Anzavur İsyanı"], answer: 0 },
+  { q: "Kabotaj Kanunu'nun kabulü ve Türk denizlerinde ticaret hakkının Türklere verilmesi doğrudan hangi Atatürk ilkesiyle ilgilidir?", options: ["Milliyetçilik", "Devletçilik", "Cumhuriyetçilik", "Halkçılık"], answer: 0 },
+  { q: "Boğazlar Komisyonu'nun kaldırılarak Boğazların yönetiminin tamamen Türkiye'ye devredildiği sözleşme hangisidir?", options: ["Montrö Boğazlar Sözleşmesi", "Lozan Antlaşması", "Sadabat Paktı", "Balkan Antantı"], answer: 0 },
+  { q: "Hatay Cumhuriyeti'nin ilk ve tek cumhurbaşkanı aşağıdakilerden hangisidir?", options: ["Tayfur Sökmen", "Abdurrahman Melek", "Şükrü Saracoğlu", "Ahmet Türkpençe"], answer: 0 },
+  { q: "Türkiye, Milletler Cemiyeti'ne (Cemiyet-i Akvam) hangi devletin daveti üzerine üye olmuştur?", options: ["İspanya ve Yunanistan", "İngiltere ve Fransa", "İtalya ve Sovyetler", "Almanya ve Romanya"], answer: 0 },
+  { q: "İkinci Dünya Savaşı sonrasında Doğu Bloku ülkeleri arasında ekonomik iş birliğini sağlamak için kurulan teşkilat hangisidir?", options: ["COMECON", "Kominform", "Varşova Paktı", "NATO"], answer: 0 },
+  { q: "Türkiye Cumhuriyeti hangi savaşa asker göndererek NATO'ya üyelik sürecini hızlandırmıştır?", options: ["Kore Savaşı", "Vietnam Savaşı", "Körfez Savaşı", "Kıbrıs Barış Harekatı"], answer: 0 },
+  { q: "Kıbrıs Türklerinin haklarını savunmak ve EOKA terör örgütüne karşı koymak için kurulan direniş teşkilatı hangisidir?", options: ["Türk Mukavemet Teşkilatı (TMT)", "Volkan Cemiyeti", "Kara Çete", "Kuvay-ı İnzibatiye"], answer: 0 },
+  { q: "SSCB'nin çöküş sürecinde Mihail Gorbaçov tarafından uygulanan 'Yeniden Yapılanma' reformu hangi kavramla adlandırılır?", options: ["Perestroyka", "Glasnost", "Detant", "Varşova"], answer: 0 },
+  { q: "Bosna Hersek bağımsızlık mücadelesinin önderi olan ve 'Bilge Kral' olarak anılan devlet adamı kimdir?", options: ["Aliya İzzetbegoviç", "Slobodan Miloseviç", "Franjo Tudjman", "Radovan Karadzic"], answer: 0 }
 ];
 
 let peer = null;
@@ -160,7 +170,6 @@ function joinAsClient() {
   });
 }
 
-// Host Olayları
 function handleHostData(conn, data) {
   if (data.type === 'JOIN') {
     players.push({ conn, id: conn.peer, name: data.name, score: 0, answer: null, answerTime: 0 });
@@ -243,7 +252,6 @@ function checkAllAnswered() {
 function evaluateRound() {
   const correctIdx = questions[currentQ].answer;
 
-  // Taban 500 puan + her kalan saniye için 25 puan (hız ödülü)
   players.forEach(p => {
     if (p.answer === correctIdx) {
       p.score += (500 + (p.answerTime * 25));
@@ -262,7 +270,6 @@ function evaluateRound() {
   broadcast(resultData);
   handleClientData(resultData);
 
-  // 2 saniye sonra otomatik bir sonraki soruya geç
   if (!resultData.isLast) {
     setTimeout(() => {
       nextQuestion();
@@ -275,7 +282,7 @@ function evaluateRound() {
   }
 }
 
-// Client Arayüzü
+// Client Görünüm Yönetimi
 let selectedChoice = null;
 
 function handleClientData(data) {
@@ -322,8 +329,8 @@ function handleClientData(data) {
   } else if (data.type === 'GAME_OVER') {
     document.getElementById('quiz-card').style.display = 'none';
     document.getElementById('round-card').style.display = 'block';
-    document.getElementById('round-result-title').innerText = "🏆 Yarışma Sona Erdi! 🏆";
-    document.getElementById('round-correct-ans').innerText = "Tüm sorular tamamlandı.";
+    document.getElementById('round-result-title').innerText = "🏆 30 Soru Tamamlandı! 🏆";
+    document.getElementById('round-correct-ans').innerText = "Yarışma sona erdi.";
   }
 }
 
